@@ -1,0 +1,53 @@
+CLAUDE.md
+LESSONS.md
+PRODUCT.md
+
+# assets/ is a WHITELIST (inherited from the ludus repo this site was cloned
+# from). Anything without a ! line 404s in production while working perfectly
+# on localhost. After any deploy that adds an asset, curl it on the live
+# domain. Regenerate by grepping index.html and privacy.html for assets/
+# references (including the JS-string ones the QA regex cannot see: beam,
+# pillars, statues, tablet-morph) and emitting one ! per hit.
+# Only the BUILT device bundle ships; assets/device3d.js and assets/three/
+# stay behind.
+assets/*
+!assets/band-agents-v6-poster.webp
+!assets/band-agents-v9.mp4
+!assets/beam.webp
+!assets/chip10-memo-crm-2x.webp
+!assets/chip11-mgr-charts-2x.webp
+!assets/chip11-mgr-guida-2x.webp
+!assets/chip11-mgr-risk-2x.webp
+!assets/chip11-mgr-target-2x.webp
+!assets/chip11-owners-comps-2x.webp
+!assets/chip11-owners-contract-2x.webp
+!assets/chip11-owners-row-2x.webp
+!assets/chip11-react-timeline-2x.webp
+!assets/chip7b-guida-call-2x.webp
+!assets/chip7b-guida-draft-2x.webp
+!assets/chip7b-react-next-2x.webp
+!assets/chip8-match-buyers-2x.webp
+!assets/chip8-mgr-money-2x.webp
+!assets/device3d.min.js
+!assets/favicon.png
+!assets/feat-guida-v9-poster.webp
+!assets/feat-guida-v9.mp4
+!assets/feat-manager-v14-poster.webp
+!assets/feat-manager-v14.mp4
+!assets/feat-manager-v9-poster.webp
+!assets/feat-manager-v9.mp4
+!assets/feat-match-v9-poster.webp
+!assets/feat-match-v9.mp4
+!assets/feat-owners-v11-poster.webp
+!assets/feat-owners-v11.mp4
+!assets/feat-reactivation-v11-poster.webp
+!assets/feat-reactivation-v11.mp4
+!assets/feat-whatsapp-v9-poster.webp
+!assets/feat-whatsapp-v9.mp4
+!assets/icon-lv-512.png
+!assets/pillar.webp
+!assets/statue-aurelius.webp
+!assets/statue-raw-m.webp
+!assets/statue-raw.webp
+!assets/tablet-morph.webp
+_src/

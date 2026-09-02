@@ -1,0 +1,2623 @@
+<!doctype html>
+<html lang="en" data-theme="sanguis">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strada · The sales AI operating system</title>
+<link rel="icon" type="image/png" href="assets/favicon.png?v=3">
+<link rel="apple-touch-icon" href="assets/icon-lv-512.png">
+<meta name="description" content="The Strada app for agents and managers: the ranked morning queue, voice memos that file themselves, matching across the whole book, and the floor in real time.">
+<!-- noindex until the site sits on its final domain; remove this line then -->
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Strada · The sales AI operating system">
+<meta property="og:description" content="The app Strada agents and managers run the day from.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Cormorant:ital,wght@0,400;0,500;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0B;
+    --bg-2: #141416;
+    --ink: #E9E4D8;
+    --ink-dim: #8A857A;
+    /* ONE phone width for the whole site: the flat shells in the bands, the 3D
+       device in bands II + III, and the instruments device all read from this.
+       They are all aspect-ratio 1 / 2.092, so matching width IS matching size. */
+    --pw: 300px;
+  }
+  [data-theme="sanguis"] { --accent: #D6453D; --accent-dim: #6E1414; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scrollbar-color: var(--accent-dim) var(--bg); scroll-behavior: smooth; overflow-x: clip; }
+  body {
+    /* The page must NEVER pan sideways (Luke, round 8). html's clip alone was
+       not enough: the band devices' WebGL canvas is 1.70 body-widths wide, which
+       on a 390px phone is 411px, and that widened the document to 401 -- which
+       in turn stretched the fixed header to match, so the whole site could be
+       dragged left and right. Clip on the body too, and cap the canvas below. */
+    overflow-x: clip;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Archivo", sans-serif;
+    caret-color: var(--accent);
+  }
+  ::selection { background: var(--accent-dim); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .pad { padding-left: clamp(24px, 5vw, 64px); padding-right: clamp(24px, 5vw, 64px); }
+
+  .numeral {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 22px;
+  }
+  .numeral b { font-weight: 500; color: var(--accent); }
+  .numeral .rn-s { font-family: "Cormorant", serif; font-style: normal; font-weight: 500; font-size: 1.55em; line-height: 1; letter-spacing: 0.1em; vertical-align: -0.08em; text-transform: none; }
+
+  h1, h2 {
+    font-weight: 900;
+    font-variation-settings: "wdth" 125;
+    text-transform: uppercase;
+    line-height: 1.02;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+  .written {
+    font-family: "Cormorant", serif;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .zw { display: inline-block; position: relative; }
+  .zg { display: inline-block; position: relative; }
+  .zw .slice, .zg .slice, .logotype .slice { position: absolute; inset: 0; pointer-events: none; user-select: none; }
+  .zapped { text-shadow: -3px 0 rgba(52,211,164,0.75), 3px 0 rgba(224,112,216,0.75); transform: translateX(var(--zx, 0)); }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; height: 100svh; display: grid; grid-template-rows: 1fr auto; padding-top: 72px; overflow: hidden; }
+  #statue { position: absolute; right: -4vw; bottom: 0; height: 96svh; aspect-ratio: 3/4; max-width: 78vw; z-index: 1; pointer-events: none; }
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 18px clamp(24px, 5vw, 64px);
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: background-color 320ms ease-out, border-color 320ms ease-out;
+  }
+  /* The instruments screen is a full-bleed screen with its own navigation, and
+     on a phone the header bar was costing the device 61px of height it could
+     not spare (Luke asked three times for a bigger phone). It steps aside while
+     that screen is framed and comes straight back on the way out. Mobile only:
+     desktop has the room. */
+  header.stand-aside { opacity: 0; pointer-events: none; }
+  header { transition: background-color 320ms ease-out, border-color 320ms ease-out, opacity 260ms ease-out; }
+  header.scrolled {
+    background: rgba(10, 10, 11, 0.55);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom-color: rgba(233, 228, 216, 0.06);
+  }
+  .logotype { position: relative; display: inline-block; font-weight: 900; font-variation-settings: "wdth" 125; font-size: 22px; letter-spacing: 0.18em; color: var(--ink); text-decoration: none; }
+  .zaps { position: relative; }
+  .zaps .dash { position: absolute; height: 2px; opacity: 0; pointer-events: none; z-index: 2; }
+  .zaps.burst .dash { opacity: 1; }
+  .logotype.hold { text-shadow: -2px 0 rgba(52,211,164,0.85), 2px 0 rgba(224,112,216,0.85); }
+  .logotype .uv { display: inline-block; }
+  .logotype.hold .uv { transform: translateY(-1px); }
+  header nav a { color: var(--ink-dim); text-decoration: none; font-size: 13px; letter-spacing: 0.22em; transition: color 160ms ease-out, border-color 160ms ease-out; border: 1px solid transparent; padding: 8px 16px; }
+  header nav a:hover { color: var(--accent); }
+  /* once past the hero, the header APPLY becomes the persistent action (QA F-06) */
+  header.past-hero nav a { color: var(--ink); border-color: var(--accent); }
+  header.past-hero nav a:hover { background: var(--accent-dim); color: var(--ink); }
+  .midcta { margin-top: 26px; grid-column: 1 / -1; justify-content: center; }
+  .stage { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
+  h1 { font-size: clamp(2.3rem, 6.8vw, 4.8rem); max-width: 15ch; }
+  .hero .written { font-size: clamp(1.25rem, 2.6vw, 1.9rem); max-width: 34ch; margin-top: 28px; }
+  .written em { font-style: italic; color: var(--accent); }
+  .actions { margin-top: 44px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  .cta { display: inline-block; font-size: 14px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; text-decoration: none; color: var(--ink); padding: 16px 30px; border: 1px solid var(--accent); transition: background-color 180ms ease-out; }
+  .cta:hover { background: var(--accent-dim); }
+  .cta:active { transform: translateY(1px); }
+  .quiet { font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; text-decoration-color: var(--accent-dim); transition: color 160ms ease-out; }
+  .quiet:hover { color: var(--accent); }
+  .proof { position: relative; z-index: 3; padding-bottom: 26px; display: flex; flex-wrap: wrap; column-gap: 14px; row-gap: 6px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); }
+  .proof b { font-weight: 500; color: var(--ink); }
+  .proof .sep { color: var(--accent); }
+
+  /* ---------- editorial bands ---------- */
+  /* auto margins, or a max-width just pins the band to the LEFT edge and every
+     band drifts off-centre as the window grows: measured at the mid-page CTA,
+     20px out at 1440, 100px at 1600, 260px at 1920 (Luke, round 10 -- "that
+     button doesn't look central"). .band.admission already carried these; the
+     rest of the page did not. */
+  .band { padding-top: clamp(70px, 11vh, 110px); padding-bottom: clamp(70px, 11vh, 110px);
+          max-width: 1200px; margin-left: auto; margin-right: auto; }
+  .band h2 { font-size: clamp(2rem, 5vw, 3.6rem); max-width: 18ch; }
+  .band p.body { font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; color: var(--ink-dim); max-width: 58ch; margin-top: 28px; }
+  .band p.body b { color: var(--ink); font-weight: 500; }
+  .band blockquote { margin-top: 44px; max-width: 44ch; }
+  .band blockquote .written { font-size: clamp(1.35rem, 2.4vw, 1.8rem); color: var(--ink); }
+  .band blockquote footer { margin-top: 14px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); display: flex; align-items: center; gap: 10px; }
+  /* An inline image sits on the text baseline by its own BOTTOM EDGE. This
+     wordmark's PNG is cropped tight to the glyphs -- measured, the ink runs
+     rows 0..92 of a 93px file, so the bottom edge IS the wordmark's baseline
+     and it needs no nudge at all. The old per-context +2px / -1px pushed it
+     below the caps beside it, which is what read as "Chae Simons is slightly
+     too high" (Luke, round 10). Aligned, not nudged. */
+  .strada-logo { height: 16px; width: auto; opacity: 0.75;
+                 vertical-align: baseline; position: relative; top: 0; }
+  .proofpanel .src, .band blockquote footer { align-items: baseline; }
+  /* The credit is ONE line on a desktop -- "strada · CHAE SIMONS, MANAGING
+     DIRECTOR" -- because there is room for it and a two-line credit under a
+     one-line quote reads as a stack. Only a phone breaks the role onto its own
+     line, where the column genuinely runs out (Luke, round 10). The name and
+     role share a `.who` so they are ONE flex item: as two items the gap landed
+     between the name and its comma. */
+  .who { display: inline; }
+  .role::before { content: ',\00a0'; }
+  .proofpanel .src, .band blockquote footer { flex-wrap: wrap; }
+  /* the voices caption uses .role for its own second line and never takes the
+     comma: there it is a place, not a job title */
+  .voices .numeral .role { display: block; width: 100%; margin-top: 8px; }
+  .voices .numeral .role::before { content: none; }
+  /* standalone proof panel (QA F-08): the strongest sentence, said loudly */
+  .proofpanel { text-align: center; padding-top: 40px; padding-bottom: 40px; }
+  .proofpanel .written { display: block; font-size: clamp(1.6rem, 3.4vw, 2.5rem); max-width: 34ch; margin: 0 auto; color: var(--ink); }
+  /* baseline, NOT center: this rule sits after the shared baseline rule above
+     at equal specificity, so `center` quietly won it back and the wordmark
+     rendered 4px low here while the band quote was perfect (measured, round 10) */
+  .proofpanel .src { margin-top: 22px; display: inline-flex; align-items: baseline; gap: 10px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); }
+
+  .rule { height: 1px; background: #1E1E21; max-width: 1200px; margin-left: clamp(24px, 5vw, 64px); margin-right: clamp(24px, 5vw, 64px); }
+
+  .band.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(28px, 5vw, 80px); align-items: center; max-width: 1400px; }
+  .band.split.flip { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  .band.split.lead { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); }
+  .sidefig { width: 100%; aspect-ratio: 3 / 4; max-height: 78svh; pointer-events: none; }
+  /* product screens on phones (QA F-04): the screen stays crisp, the frame stays quiet */
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; justify-self: center; }
+  .phone { position: relative; width: var(--pw, 300px); aspect-ratio: 780 / 1688; background: #101012; border: 1px solid #26262A; border-radius: 42px; padding: 9px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55); }
+  /* screen content is inset so app chrome (logo, avatar) never hits the corner radius */
+  .phone img, .phone video { width: 100%; height: 100%; object-fit: cover; border-radius: 26px; display: block; padding: 10px 6px; background: #050506; }
+  .phone::after { content: ""; position: absolute; inset: 9px; border-radius: 33px; box-shadow: inset 0 0 0 1px rgba(233, 228, 216, 0.05); pointer-events: none; }
+  /* the instruction is its own line under the sentence, not trailing it */
+  .phone-cap .cap-2 { display: block; margin-top: 6px; }
+  .phone-cap { margin-top: 16px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); text-align: center; }
+
+  /* ---------- colosseum scrub ---------- */
+  .scrub { position: relative; }
+  .scrub .pinbox { position: sticky; top: 72px; height: calc(100svh - 72px); overflow: hidden; }
+  #colosseum { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .scrub .caption {
+    position: absolute; z-index: 2;
+    left: clamp(24px, 5vw, 64px); bottom: clamp(60px, 12vh, 120px);
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 420ms ease-out, transform 420ms ease-out;
+    max-width: 46ch;
+  }
+  .scrub .caption.on { opacity: 1; transform: none; }
+  .scrub .caption.pos-br { left: auto; right: clamp(24px, 5vw, 64px); text-align: right; }
+  .scrub .caption.pos-tl { top: max(20px, calc(16vh - 64px)); bottom: auto; }
+  /* bone, not dim: these sit over the lit half of the arena and the dim grey
+     lost to the scanlines behind them (Luke, round 8) */
+  .scrub .caption .numeral, .scrub .lede .numeral { color: var(--ink); }
+  .scrub .caption .numeral { margin-bottom: 10px; }
+  .scrub .caption h3 { font-weight: 900; font-variation-settings: "wdth" 125; text-transform: uppercase; font-size: clamp(1.6rem, 3.6vw, 2.6rem); letter-spacing: 0.01em; }
+  .scrub .caption p { font-family: "Cormorant", serif; font-style: italic; font-size: clamp(1.15rem, 2vw, 1.5rem); color: var(--ink); margin-top: 8px; }
+  .scrub .lede { position: absolute; z-index: 2; left: clamp(24px, 5vw, 64px); top: max(20px, calc(16vh - 64px)); max-width: 22ch; opacity: 0; transition: opacity 420ms ease-out; }
+  .scrub .lede.on { opacity: 1; }
+  .scrub .lede h2 { font-size: clamp(1.9rem, 4.2vw, 3.2rem); }
+  .scrub .lede .written { font-size: clamp(1.1rem, 1.9vw, 1.45rem); color: var(--ink); margin-top: 12px; }
+
+  /* ---------- interlude ---------- */
+  .interlude { padding-top: clamp(110px, 20vh, 200px); padding-bottom: clamp(110px, 20vh, 200px); text-align: center; }
+  .interlude p { font-family: "Cormorant", serif; font-style: italic; font-size: clamp(1.5rem, 3.2vw, 2.4rem); color: var(--ink); }
+  .interlude p b { font-style: normal; font-family: "Archivo", sans-serif; font-weight: 500; font-size: 0.6em; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-dim); display: block; margin-top: 18px; }
+
+  /* ---------- colonnade ---------- */
+  .band.split.flip { position: relative; z-index: 2; }
+  .colonnade { position: relative; }
+  .colonnade > section, .colonnade > .interlude, .colonnade > footer { position: relative; z-index: 1; }
+  .beam { position: absolute; top: 0; left: 0; width: 100%; height: clamp(72px, 7.6vw, 140px); z-index: 0; pointer-events: none; }
+  .pillar { position: absolute; top: calc(clamp(72px, 7.6vw, 140px) - 8px); height: calc(100% - clamp(72px, 7.6vw, 140px) + 8px); width: clamp(160px, 19vw, 350px); z-index: 0; pointer-events: none; }
+  .pillar.left { left: clamp(8px, 1.6vw, 34px); }
+  .pillar.right { right: clamp(8px, 1.6vw, 34px); transform: scaleX(-1); }
+  .colonnade .band, .colonnade .interlude, .colonnade footer.site { padding-left: clamp(190px, 23vw, 420px); padding-right: clamp(190px, 23vw, 420px); }
+  .colonnade .interlude { padding-top: clamp(280px, 36vh, 460px); padding-bottom: clamp(50px, 7vh, 90px); }
+  .colonnade .band.admission { max-width: none; }
+  .colonnade footer.site { justify-content: space-between; }
+  footer.site a { color: var(--ink-dim); text-decoration: none; transition: color 160ms ease-out; }
+  footer.site a:hover { color: var(--accent); }
+  @media (max-width: 780px) {
+    .beam, .pillar { display: none; }
+    .band.split.flip { padding-bottom: clamp(90px, 16vh, 160px); }
+    .band.split.flip > div { padding-bottom: 0; }
+    .colonnade .band, .colonnade .interlude, .colonnade footer.site { padding-left: 24px; padding-right: 24px; }
+    .colonnade .interlude { padding-top: clamp(80px, 12vh, 130px); }
+  }
+
+  /* ---------- voices: Strada agents on camera ---------- */
+  .voices { max-width: 1200px; margin-left: auto; margin-right: auto; text-align: center; }
+  /* The three clips are not the same shape (720x900, 720x900, 640x1138). A
+     stretched row gave the two short ones a slab of black under the picture,
+     so each tile hugs its own video and the row centres on the tall one. */
+  .voices-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center;
+                 gap: clamp(16px, 2.4vw, 32px); max-width: 1040px; margin: 44px auto 0; }
+  /* The tile's height is LOCKED to --va, its clip's own aspect, and the video
+     fills that box absolutely. Sizing from the element's intrinsic size instead
+     means the box tracks whatever the element currently knows -- video metadata,
+     poster, or nothing at all -- so on iOS, where unmuting one clip can evict
+     another's decoder, a neighbour would drop to poster size or collapse. That
+     resize moves every tile below it, which changes their intersection ratios,
+     which pauses and re-mutes them: one tap, and the row rearranges itself
+     (Luke, round 8). A fixed box cannot do any of that. The poster also sits
+     behind the video, so an evicted decoder shows the still, never black. */
+  .voice { position: relative; margin: 0; border: 1px solid #26262A; border-radius: 20px;
+           overflow: hidden; background: #101012 center / cover no-repeat; cursor: pointer;
+           aspect-ratio: var(--va); }
+  .voice video { position: absolute; inset: 0; width: 100%; height: 100%;
+                 object-fit: cover; display: block; }
+  .voice .v-sound {
+    position: absolute; right: 12px; bottom: 12px; z-index: 2;
+    font-family: "Archivo", sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink); background: rgba(10, 10, 11, 0.72); border: 1px solid var(--accent); padding: 8px 12px; cursor: pointer;
+  }
+  /* On a desktop the row plays itself and the sound chip is the whole
+     interaction, so the transport does not exist there. These two defaults have
+     to sit ABOVE the touch query: it overrides both at equal specificity, so
+     source order is the only thing deciding it (LESSONS, round 10). */
+  .voice .v-play { display: none; }
+  .voices .phone-cap { margin-top: 20px; }
+  .voices .cap-mob { display: none; }
+  @media (prefers-reduced-motion: reduce) { .voice .v-play { transition: none; } }
+
+  /* THE TOUCH ROW. On a phone the row does not play itself at all (Luke, round
+     12). Three clips that start on their own, one of which you then have to
+     unmute, is a desktop idea: on a phone it spends his data before he has
+     asked for anything and it puts the sound behind a second tap. So each tile
+     carries a real transport instead of the sound chip, and one tap plays one
+     clip WITH its sound, from a paused element -- which is also the only unmute
+     path on iOS that never goes near the muted trick-play engine that broke
+     this row in the first place (LESSONS, round 12).
+
+     The query is deliberately NOT just `max-width: 780px`. An iPhone held
+     landscape is 844px wide, which would have handed the device that actually
+     has the bug straight back to the desktop path; and an iPad runs the same
+     WebKit. Width alone does not tell you the input method. The 1180px ceiling
+     keeps large touch-screen desktops on the approved desktop behaviour.
+     ** This query is duplicated in the JS below. Move one, move the other. ** */
+  @media (max-width: 780px), (pointer: coarse) and (max-width: 1180px) {
+    .voice .v-sound { display: none; }
+    /* An unplayed tile is held back and the one you started comes up to full.
+       Same reflex the instruments use when a pop-out is out (LESSONS, v7): the
+       hierarchy IS the interface. It also settles the contrast problem the
+       control had on its own -- these posters carry burned-in white captions
+       that punched straight through a disc sitting on the raw picture. */
+    .voice::after {
+      content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: rgba(10, 10, 11, 0.46);
+      transition: opacity .5s cubic-bezier(.16, 1, .3, 1);
+    }
+    .voice.playing::after { opacity: 0; }
+    .voice .v-play {
+      display: grid; place-items: center; position: absolute; z-index: 2;
+      left: 50%; top: 50%; margin: -32px 0 0 -32px; width: 64px; height: 64px;
+      padding: 0; -webkit-appearance: none; appearance: none; cursor: pointer;
+      color: var(--ink); background: rgba(10, 10, 11, 0.82);
+      border: 1px solid var(--accent); border-radius: 50%;
+      transition: opacity .42s cubic-bezier(.16, 1, .3, 1),
+                  transform .42s cubic-bezier(.16, 1, .3, 1);
+    }
+    .voice .v-play svg { display: block; width: 26px; height: 26px; fill: currentColor; }
+    .voice .v-play .ic-pause { display: none; }
+    /* Playing, the control recedes so it stops covering the face -- but it stays
+       a real, hittable, focusable button rather than becoming a hidden one, and
+       it comes back to full strength for anyone arriving on it by keyboard.
+       .55, not lower: measured against a bright frame, .3 puts the pause icon at
+       1.9:1 against its surround, which is an invisible control, not a quiet
+       one, and .55 puts it at 3.5:1. Receding is not disappearing. */
+    .voice.playing .v-play { opacity: .55; transform: scale(.84); }
+    .voice.playing .v-play .ic-play { display: none; }
+    .voice.playing .v-play .ic-pause { display: block; }
+    .voice .v-play:focus-visible { opacity: 1; transform: none; }
+    .voice .v-play:active { transform: scale(.94); }
+    .voices .cap-desk { display: none; }
+    .voices .cap-mob { display: block; }
+  }
+
+  /* bands: the screen mask inside the flat phone shell */
+  .screen { position: absolute; inset: 9px; border-radius: 33px; overflow: hidden; background: #050506; }
+  .screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; padding: 0; border-radius: 0; background: none; }
+
+  /* ---------- the tablet morph (first phone only) ----------
+     The site's first device arrives as the carved LVDVS slab and resolves into
+     the phone as you reach it. The slab is the transmission engine's own
+     scanline render, so the glitch is the site's existing one and intensifies
+     with scroll velocity for free; the morph itself is the slab squeezing from
+     tablet proportions down onto the phone's footprint and dissolving. */
+  .phone-wrap[data-morph] { position: relative; }
+  /* The slab is 1.072x the phone's box, so it hangs lower than the device and
+     was sitting on this caption while it was still a tablet. Push the caption
+     clear WHILE the slab is up, then let it settle back to the same place as
+     band III's once the phone lands. Transform, not margin: animating margin
+     relayouts the section every frame. */
+  .phone-wrap[data-morph] .phone-cap { transform: translateY(52px);
+    transition: transform 420ms ease-out 460ms; }
+  .phone-wrap[data-morph].morphed .phone-cap { transform: none; }
+  /* EXACTLY the phone's box, so nothing resizes: the slab cuts to the device
+     where it already stands. It is the REAL carving, not a transmission render
+     -- scanlining a 2048px inscription down into a 300px box turned the letters
+     to mush, and the carving is the whole point of the shot (Luke, round 8). */
+  .morph { position: absolute; left: 50%; top: 50%; z-index: 4; pointer-events: none;
+           /* 1.072: the carving sits inside its own crop margins, so at an
+              identical box the slab rendered 571px against the device's 612
+              and the phone appeared to grow on the cut. Measured, not judged. */
+           width: calc(var(--pw, 300px) * 1.072); aspect-ratio: 1 / 2.092;
+           display: block;
+           transform: translate(-50%, -50%);
+           will-change: transform, opacity, filter; }
+  .phone-wrap[data-morph] .band-dev, .phone-wrap[data-morph] .phone { opacity: 0; }
+  /* THE CUT. The phone used to fade in clean while only the slab glitched,
+     which read as one object leaving and another arriving. Now both states tear
+     on the SAME beats and trade places four times, teal/orchid split on every
+     switch, before the phone wins: one signal locking on, not a crossfade. */
+  @keyframes morph-slab {
+    0%,15%  { opacity: 1; transform: translate(-50%, -50%); }
+    16%,23% { opacity: 0; }
+    24%     { opacity: 1; transform: translate(calc(-50% + 9px), -50%);
+              filter: drop-shadow(-4px 0 rgba(52,211,164,0.8)) drop-shadow(4px 0 rgba(224,112,216,0.8)) brightness(1.3); }
+    35%     { opacity: 1; transform: translate(calc(-50% - 7px), -50%); }
+    36%,49% { opacity: 0; }
+    50%     { opacity: 1; transform: translate(calc(-50% + 5px), -50%);
+              filter: drop-shadow(-3px 0 rgba(52,211,164,0.7)) drop-shadow(3px 0 rgba(224,112,216,0.7)) brightness(1.6); }
+    57%     { opacity: 1; transform: translate(-50%, -50%); }
+    58%,71% { opacity: 0; }
+    72%     { opacity: 0.7; transform: translate(calc(-50% - 3px), -50%); filter: brightness(2); }
+    78%,100%{ opacity: 0; }
+  }
+  @keyframes morph-dev {
+    0%,15%  { opacity: 0; }
+    16%     { opacity: 1; transform: translateX(7px);
+              filter: drop-shadow(-4px 0 rgba(52,211,164,0.8)) drop-shadow(4px 0 rgba(224,112,216,0.8)); }
+    23%     { opacity: 1; transform: translateX(-5px); }
+    24%,35% { opacity: 0; }
+    36%     { opacity: 1; transform: translateX(-6px);
+              filter: drop-shadow(3px 0 rgba(224,112,216,0.75)) drop-shadow(-3px 0 rgba(52,211,164,0.75)); }
+    49%     { opacity: 1; transform: translateX(4px); }
+    50%,57% { opacity: 0; }
+    58%     { opacity: 1; transform: translateX(3px);
+              filter: drop-shadow(-2px 0 rgba(52,211,164,0.6)) drop-shadow(2px 0 rgba(224,112,216,0.6)); }
+    71%     { opacity: 1; transform: translateX(-2px); }
+    72%,77% { opacity: 0; }
+    78%     { opacity: 1; transform: translateX(1px); filter: none; }
+    100%    { opacity: 1; transform: none; filter: none; }
+  }
+  .phone-wrap[data-morph].morphed .morph { animation: morph-slab 860ms steps(1, end) forwards; }
+  .phone-wrap[data-morph].morphed .band-dev,
+  .phone-wrap[data-morph].morphed .phone { animation: morph-dev 860ms steps(1, end) forwards; }
+  .phone-wrap[data-morph].morphed .band-dev,
+  .phone-wrap[data-morph].morphed .phone { opacity: 1; }
+  /* The signal is still settling after the cut. The morph ended on a clean
+     device, so the last tear read as the end of an event rather than a
+     transmission locking on (Luke, round 10). This carries the engine's own
+     vocabulary -- horizontal band tears with a teal/orchid split -- across the
+     handover and decays to nothing over two seconds.
+     The box is set in JS from the device's OWN canvas, not from this wrapper:
+     .phone-wrap also holds the caption, so its centre sits ~14px below the
+     device's and a box centred here spilled static past the phone's bottom edge
+     while leaving its top bare (measured, round 10). Corner radius is the
+     device's own, 0.168 body-widths from device3d's PR, so the static can never
+     square off the corners it is sitting on. */
+  .morph-fizz { position: absolute; z-index: 5; pointer-events: none; display: block; opacity: 0; }
+  /* nothing to resolve without motion: the phone is simply there */
+  @media (prefers-reduced-motion: reduce) {
+    .morph, .morph-fizz { display: none; }
+    .phone-wrap[data-morph] .band-dev, .phone-wrap[data-morph] .phone { opacity: 1; transition: none; }
+  }
+
+  /* ---------- bands II + III: the real 3D device, held still ----------
+     Same module as the instruments, no spin. The flat .phone stays in the
+     markup and is what shows without WebGL or under reduced motion. */
+  .band-dev { display: none; position: relative; --dw: var(--pw, 300px); width: var(--dw); aspect-ratio: 1 / 2.092; }
+  .phone-wrap.dev3d .band-dev { display: block; }
+  .phone-wrap.dev3d .phone { display: none; }
+  .band-gl { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+             width: calc(var(--dw) * 1.70); height: calc(var(--dw) * 2.90); pointer-events: none; }
+  /* the <video> is the texture source: never display:none, or the decoder
+     stalls and the screen renders black */
+  .vsrc { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+
+  /* ---------- the instruments: six features on the real 3D device ----------
+     Round 7: the arrows are the ONLY navigation. Nothing here reads scrollY
+     and the section does not pin, because a pinned stage that ignores your
+     scroll is the trap v6 fell into. The device is real geometry
+     (assets/device3d.js, lazily imported) and its screen is a VideoTexture of
+     the actual mp4, so re-shot footage can never strand a transition. */
+  .features {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    /* one toss needs 2.507 body-widths of vertical room (device3d VSPACE), so
+       the device is sized from whatever the progress row leaves behind. Only
+       the foot is chrome now: the heading lives ABOVE the screen (see below). */
+    --feat-chrome: 40px;
+    --dw: min(var(--pw), calc((100svh - var(--feat-chrome)) / 2.507));
+    --arrowlane: calc(clamp(12px, 2vw, 34px) + 66px + 18px);
+  }
+  /* The instrument screen is a clean 100svh: stage + progress row, nothing else.
+     The heading is NOT in it — it sits above and scrolls up off the top as you
+     arrive (Luke, round 8), which is the only way the device reaches the site's
+     full 300px phone width on a ~830px-tall window. Keeping the title on the
+     screen costs 166px of chrome and caps the device at 267px. */
+  .feat-screen { height: 100svh; overflow: hidden; display: flex; flex-direction: column; }
+  .feat-head { flex: 0 0 auto; padding: 74px 0 24px; text-align: center; }
+  .feat-head h2 { font-size: clamp(1.7rem, 2.7vw, 2.5rem); margin: 0 auto; max-width: 40ch; }
+  .feat-head .numeral { margin-bottom: 8px; }
+  .feat-head .written { display: block; margin-top: 6px; font-size: clamp(1rem, 1.35vw, 1.22rem); color: var(--ink-dim); }
+  .features .numeral { font-size: clamp(11px, 0.9vw, 13px); letter-spacing: 0.24em; }
+
+  /* The composition stops spreading past 1600px. Left to run, the three tracks
+     flew apart on a big screen: 650px of nothing between the columns on a 3440
+     ultrawide, with the phone still 300px in the middle of it. A capped,
+     centred stage reads as a composition with margins; an uncapped one reads as
+     a void (Luke: "no blank space on any device"). */
+  .feat-stage { position: relative; flex: 1 1 auto; min-height: 0; width: 100%;
+                max-width: 1800px; margin-inline: auto;
+                display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  /* the copy clears the arrow lane on its own side, as the details do on theirs */
+  .feat-copy { grid-column: 1; position: relative; height: 16em; z-index: 1;
+               margin-left: var(--arrowlane); margin-right: clamp(12px, 2vw, 40px); }
+  /* Round 11: the COPY rides above dead centre on desktop, the details stay
+     centred. The payoff hangs off the copy's bottom edge, so a centred copy
+     left it only ~213px of room on a 1440x820 window -- which the chip then had
+     to shrink into, ending up SMALLER on the page than it is on the phone, with
+     its note almost on the progress dots (Luke). Lifting the copy lifts the
+     payoff with it and buys back the size. The first pass lifted both columns
+     together on the theory that they had to stay level; Luke looked at it and
+     wants the right one back on the centre line, so the phone keeps a column
+     either side of it rather than two blocks riding high. */
+  @media (min-width: 781px) {
+    .feat-copy { top: -88px; }
+  }
+  .feat-item { position: absolute; inset: 0; opacity: 0; transform: translateY(14px);
+               transition: opacity 420ms ease-out, transform 420ms ease-out; pointer-events: none; }
+  .feat-item.on { opacity: 1; transform: none; }
+  .feat-copy .numeral { margin-bottom: 0; }
+  .feat-copy h3 { font-size: clamp(1.6rem, 2.7vw, 3.1rem); font-weight: 700;
+                  font-variation-settings: "wdth" 110; margin: 16px 0 14px; line-height: 1.08; }
+  .feat-copy p { color: var(--ink-dim); font-size: clamp(1.02rem, 1.3vw, 1.3rem); line-height: 1.55; max-width: 42ch; }
+  .feat-copy p b { color: var(--ink); font-weight: 500; }
+  /* while a payoff is out, everything else recedes: the hierarchy is the ad */
+  /* The copy no longer recedes. Round 7 dimmed it to 0.16 because the chip
+     landed ON it and the two competed; now the chip is drawn down into the
+     empty column below the copy, so there is nothing to get out of the way and
+     dimming the reading matter just made the section look broken (Luke, round
+     10). The device still recedes -- that IS what the payoff came out of. */
+  .feat-stage.chipout .devcap { opacity: 0.3; }
+  /* .feat-devcol carries z-index 2, which is a stacking context, so a chip
+     inside it resolves UNDER the nav's 9 and the arrows draw over the payoff.
+     Lift the whole column while one is out (this was mobile-only; the chip now
+     travels across the stage on desktop too). */
+  .feat-stage.chipout .feat-devcol { z-index: 21; }
+  .devcap { transition: opacity 320ms ease-out; }
+
+  /* .feat-dwrap keeps the PHONE's box, so chip anchoring and layout are stable.
+     The WebGL canvas is bigger than the phone (it needs headroom for the toss
+     and the shadow) and overflows the wrap without affecting layout. */
+  .feat-devcol { grid-column: 2; justify-self: center; position: relative; z-index: 2;
+                 display: flex; flex-direction: column; align-items: center; }
+  .feat-dwrap { position: relative; width: var(--dw); aspect-ratio: 1 / 2.092; }
+  .feat-gl { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+             width: calc(var(--dw) * 1.70); height: calc(var(--dw) * 2.90); pointer-events: none; }
+  .devcap { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 16px;
+            font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim);
+            text-align: center; white-space: nowrap; }
+
+  /* fallback shell (no WebGL / reduced motion): the flat treatment, crossfading */
+  .feat-flat { position: absolute; inset: 0; display: none; }
+  .feat-flat.on { display: block; }
+  .feat-flat .shell { position: absolute; inset: 0; background: #101012; border: 1px solid #26262A;
+                      border-radius: 42px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55); }
+  .feat-flat .screenbox { position: absolute; inset: 9px; border-radius: 33px; overflow: hidden;
+                          background: #050506; transition: filter 320ms ease-out; }
+  .feat-flat .screenbox.dim { filter: brightness(0.32); }
+  .feat-flat .screenbox video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+                                opacity: 0; transition: opacity 360ms ease-out; }
+  .feat-flat .screenbox video.on { opacity: 1; }
+
+  /* ---- pop-out chips: exact card cuts from the SHIPPED clip's own frames, so
+     the payoff always shows what is on screen behind it ---- */
+  /* The chip leaves the phone from the EXACT card it was cut from. --sx/--sy is
+     that card's centre and --sw/--sh its size, both as fractions of the video
+     frame, measured by locating the chip's own pixels inside the clip's frame
+     at data-t0 (_src/strada/frame/find-chip-origins.py, 0.885-0.983 match). JS
+     turns those into a start transform on the phone's screen rect, so it starts
+     at the size and place of the real card and is drawn out from there --
+     instead of scaling up out of the middle of the device (Luke, round 10).
+     transform-origin 0 0 so translate+scale places the top-left exactly. */
+  .chip { position: absolute; left: 0; top: 0; transform-origin: 0 0;
+          opacity: 0; pointer-events: none; z-index: 5;
+          transition: transform 620ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 300ms ease-out;
+          filter: drop-shadow(0 24px 50px rgba(0, 0, 0, 0.65)) brightness(1.14); }
+  .chip.out { opacity: 1; }
+  .chip img { width: 100%; display: block; }
+  /* Why this payoff matters, not what it is. It fades in AFTER the chip lands
+     rather than riding the flight: the whole block is scaled during the flight
+     and text scaled from 0.6 is mush. The hold is derived from its length, so
+     there is time to read it (Luke, round 10). */
+  .chip-note { margin: 14px 2px 0; font-size: 0.95rem; line-height: 1.45;
+               color: var(--ink-dim); max-width: 40ch;
+               opacity: 0; transition: opacity 320ms ease-out 400ms; }
+  .chip-note b { color: var(--ink); font-weight: 500; }
+  .chip.out .chip-note { opacity: 1; }
+
+  /* ---- which composition the instruments are in ----
+     Round 11. This used to be `@media (max-width: 780px)` in the CSS and four
+     separate `matchMedia('(max-width: 780px)')` calls in the JS, with no shared
+     source. Six copies of one decision: change the CSS alone and the layout
+     half-applies (the copy column collapsed to zero, because the stacked layout
+     also needs sizeCopySlot() to measure it in JS).
+     Now ONE function picks the composition and writes a class. CSS reads the
+     class, JS reads the same function, and they cannot disagree.
+
+       lay-three  the approved desktop stage: copy | device | details
+       lay-stack  device on top, copy under it, no third column
+       lay-two    short and wide (a phone on its side): device beside the copy,
+                  no details, because there is no vertical room for a stack and
+                  stacking one gave a 96px-wide phone
+
+     Measured before choosing: three columns need ~1160px of width (300 device
+     + 348 details + ~330 of readable copy + two arrow lanes). Below that the
+     copy absorbs the whole shortfall -- 40px wide on an iPad Air, with the
+     words breaking one letter per line. */
+  .features.lay-stack { --feat-chrome: 40px; padding-top: 0; }
+  .features.lay-stack .feat-head { padding: 78px 0 20px; }
+  /* start-aligned, with fit() padding in exactly the arc the toss needs ABOVE
+     the device. Centring split the free space evenly, which reserved a second
+     arc's worth UNDER the phone that the toss never uses (Luke, round 8). */
+  .features.lay-stack .feat-stage { grid-template-columns: 1fr; grid-template-rows: auto auto;
+                                    align-content: start; row-gap: 12px; max-width: none; }
+  .features.lay-stack .feat-devcol { grid-column: 1; grid-row: 1; }
+  .features.lay-stack .feat-copy { grid-column: 1; grid-row: 2; height: 10.5em;
+                                   margin: 0 24px; text-align: center; top: 0; }
+  .features.lay-stack .feat-copy p { margin: 0 auto; font-size: 1.06rem; line-height: 1.5; }
+  .features.lay-stack .feat-copy h3 { font-size: clamp(1.45rem, 6.2vw, 1.9rem); margin: 6px 0 6px; }
+  .features.lay-stack .feat-head .numeral { margin-bottom: 8px; }
+  .features.lay-stack .feat-head h2 { font-size: clamp(1.25rem, 5.4vw, 1.6rem); }
+  .features.lay-stack .feat-head .written { font-size: 0.9rem; margin-top: 5px; }
+  .features.lay-stack .feat-foot { padding: 5px 0 6px; }
+  /* .feat-devcol carries z-index 2, which is a stacking context, so the chip's
+     own z-index was resolving INSIDE it, under the nav's 9, and the arrows drew
+     over the payoff (round 8). */
+  .features.lay-stack .chip { z-index: 20; }
+  .features.lay-stack .feat-stage.chipout .devcap { opacity: 1; }
+  .features.lay-stack .feat-nav button { width: 54px; height: 54px; }
+  .features.lay-stack .feat-nav button svg { width: 24px; height: 24px; }
+  .features.lay-stack #featprev { left: 8px; }
+  .features.lay-stack #featnext { right: 8px; }
+  /* no room for a third column; the copy carries the story */
+  .features.lay-stack .feat-details { display: none; }
+  /* in flow here: hanging it off the device's box lands it on the copy */
+  .features.lay-stack .devcap { position: static; transform: none; margin-top: 10px;
+            font-size: 9px; letter-spacing: 0.14em;
+            white-space: normal; max-width: calc(100vw - 48px); }
+
+  /* Short and wide. Keep the device beside the copy, drop the details: there is
+     no vertical room to stack, and the stacked branch sizes the device from the
+     height budget, so stacking a 390px-tall window produced a 96px phone. */
+  /* The third track carries no content: it IS the right arrow lane, the one the
+     details column provides for free in lay-three. Dropping to two columns
+     dropped that lane with it, so the device column ran to the viewport edge --
+     phone flush against the glass with #featnext drawn on top of it, on every
+     phone and iPad held landscape. Wide enough for the 46px arrow at right:6px
+     and for the toss headroom too: .feat-gl runs --dw * 1.70, so the canvas
+     reaches 0.35 * --dw past the phone on each side. */
+  .features.lay-two .feat-stage { grid-template-columns: 1fr auto max(64px, calc(var(--dw) * 0.35 + 14px));
+                                  max-width: none; }
+  .features.lay-two .feat-details { display: none; }
+  .features.lay-two .feat-copy { top: 0; }
+  .features.lay-two .feat-nav button { width: 46px; height: 46px; }
+  .features.lay-two .feat-nav button svg { width: 22px; height: 22px; }
+  .features.lay-two #featprev { left: 6px; }
+  .features.lay-two #featnext { right: 6px; }
+  .features.lay-two .devcap { display: none; }
+
+  /* ---- the detail behind each instrument ----
+     Bullets are lowercase Roman numerals in Cormorant, the serif the section
+     markers use, so a point inside IV.ii reads as IV.ii.i rather than as a
+     generic list. Sanguis red, never a disc or a dash. It does NOT dim when a
+     payoff is out: it is the reading matter. */
+  .feat-details { grid-column: 3; position: relative; height: 21em; z-index: 1;
+                  margin-right: var(--arrowlane); margin-left: clamp(16px, 2vw, 40px);
+                  justify-self: center; width: min(38ch, 30vw); }
+  /* sets vary in height, so each is centred in the column rather than
+     top-aligned: every instrument's points sit on the device's axis */
+  .feat-details .dset { position: absolute; inset: 0; opacity: 0; transform: translateY(14px);
+                        transition: opacity 420ms ease-out, transform 420ms ease-out;
+                        pointer-events: none; display: flex; align-items: center; }
+  .feat-details .dset.on { opacity: 1; transform: none; }
+  /* a hairline rule ties the set together without drawing a box */
+  .feat-details ul { list-style: none; padding-left: 1.45em; position: relative; width: 100%; }
+  .feat-details ul::before { content: ''; position: absolute; left: 0; top: 0.15em; bottom: 0.15em; width: 1px;
+    background: linear-gradient(180deg, transparent, #2A2A2E 16%, #2A2A2E 84%, transparent); }
+  .feat-details li { position: relative; padding-left: 2.3em; margin-bottom: 1.35em;
+                     color: var(--ink-dim); font-size: clamp(0.92rem, 1.02vw, 1.1rem); line-height: 1.52; }
+  .feat-details li:last-child { margin-bottom: 0; }
+  .feat-details li b { color: var(--ink); font-weight: 500; }
+  .feat-details li::before { content: attr(data-rn); position: absolute; left: 0; top: -0.06em;
+    font-family: "Cormorant", serif; font-style: italic; font-weight: 500;
+    font-size: 1.5em; line-height: 1; color: var(--accent); letter-spacing: 0.06em; }
+
+  /* out of the grid's flow: as a grid item it opened a second row and stole
+     half the toss headroom, which put the phone through the strapline at the
+     top of its arc */
+  .feat-nav { position: absolute; inset: 0; z-index: 9; pointer-events: none; }
+  .feat-nav button { pointer-events: auto; position: absolute; top: 50%; transform: translateY(-50%); z-index: 9;
+    width: 66px; height: 66px; border-radius: 50%; border: 1px solid #2E2E33;
+    display: grid; place-items: center; padding: 0;
+    background: rgba(16, 16, 18, 0.85); color: var(--ink); line-height: 1;
+    cursor: pointer; transition: border-color 200ms, color 200ms; }
+  /* currentColor, so the pulse below drives the arrow with the button */
+  .feat-nav button svg { width: 30px; height: 30px; display: block;
+    fill: none; stroke: currentColor; stroke-width: 2.4;
+    stroke-linecap: round; stroke-linejoin: round; }
+  /* Sanguis is this page's interference colour, never a UI state: an arrow that
+     turned red read as an error rather than a hint (Luke, round 10). Hover is
+     the same bone the pulse uses, and it is gated on a real pointer so a tap on
+     a phone cannot leave the button stuck lit after your finger has gone. */
+  @media (hover: hover) and (pointer: fine) {
+    .feat-nav button:hover:not(:disabled) { border-color: #E9E4D8; color: #E9E4D8; }
+  }
+  .feat-nav button:focus-visible { outline: none; border-color: #E9E4D8;
+    box-shadow: 0 0 0 3px rgba(233, 228, 216, 0.28); }
+  .feat-nav button:disabled { opacity: 0.22; cursor: default; }
+  /* One breath, not a blink. The bright plateau used to run 14% -> 30% of a
+     620ms animation: 99ms, gone before your eye reached it (Luke, round 10 --
+     the comment here still described a 2.5s cycle that had been replaced).
+     1200ms now: eased up over ~200ms, HELD bright for ~480ms, then released
+     slowly across the remaining ~500ms so it fades rather than snapping off.
+     Still lands inside the 1250ms JS beat, so the two arrows can never be lit
+     at the same time. */
+  @keyframes feat-navpulse {
+    0%   { border-color: #2E2E33; background: rgba(16, 16, 18, 0.85); color: var(--ink);
+           animation-timing-function: cubic-bezier(0.32, 0, 0.24, 1); }
+    17%  { border-color: #E9E4D8; background: rgba(196, 193, 186, 0.92); color: #0A0A0B; }
+    57%  { border-color: #E9E4D8; background: rgba(196, 193, 186, 0.92); color: #0A0A0B;
+           animation-timing-function: cubic-bezier(0.4, 0, 0.7, 1); }
+    100% { border-color: #2E2E33; background: rgba(16, 16, 18, 0.85); color: var(--ink); }
+  }
+  /* Driven by a shared JS clock, not by each element's own animation start.
+     With CSS animation-delay the two arrows were only in phase while BOTH had
+     been running since load -- and prev is disabled at instrument 0, so its
+     animation began whenever you first stepped forward. From then on the two
+     ran at an arbitrary offset: near-together but never quite, which is exactly
+     what Luke was seeing. A class toggled from one timer cannot drift. */
+  .feat-nav button.pulse:not(:disabled) { animation: feat-navpulse 1200ms linear 1; }
+  /* an arrow with nowhere to go stops dead, it is not merely dimmed */
+  .feat-nav button:disabled { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .feat-nav button { animation: none !important; } }
+  #featprev { left: clamp(12px, 2vw, 34px); }
+  #featnext { right: clamp(12px, 2vw, 34px); }
+
+  .feat-foot { flex: 0 0 auto; padding: 10px 0 14px; }
+  .feat-progress { display: flex; justify-content: center; gap: 10px; }
+  .feat-progress i { width: 26px; height: 2px; background: #2A2A2E; transition: background-color 300ms ease-out; }
+  .feat-progress i.on { background: var(--accent); }
+
+  /* the scroll cue: sanguis, in the heading's own weight and width so it is
+     spotted, flashing once every 2s and holding bright for the same 400ms the
+     instrument arrows hold */
+  /* Sanguis is the interference colour, not a UI state -- a red cue read as a
+     warning rather than an invitation (Luke, round 10). Bone, and the MOTION
+     carries the attention now instead of the whole cue strobing its opacity:
+     the dot travels down the barrel the way a wheel does. */
+  .scroll-cue { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%);
+                bottom: clamp(18px, 3.5vh, 40px);
+                display: flex; flex-direction: column; align-items: center; gap: 9px;
+                color: var(--ink); opacity: 0.86; pointer-events: none; }
+  /* the site's written voice, at the weight Luke asked for -- Cormorant carries
+     every spoken line on this page, and italic 700 is loaded for this one word */
+  .scroll-cue span { font-family: "Cormorant", serif; font-style: italic; font-weight: 700;
+    font-size: clamp(15px, 1.35vw, 19px); letter-spacing: 0.04em; text-transform: none; line-height: 1; }
+  .scroll-cue svg { width: 24px; height: 39px; display: block; overflow: visible; }
+  .scroll-cue rect { fill: none; stroke: currentColor; stroke-width: 2; }
+  .scroll-cue .dot { fill: currentColor; animation: scrollcue-dot 2.1s cubic-bezier(0.4, 0, 0.3, 1) infinite; }
+  @keyframes scrollcue-dot {
+    0%      { transform: translateY(0);    opacity: 0; }
+    14%     { opacity: 1; }
+    58%     { transform: translateY(15px); opacity: 1; }
+    76%,100%{ transform: translateY(15px); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .scroll-cue .dot { animation: none; } }
+
+  /* ---------- buyer answers (QA F-10) ----------
+     Round 8 rebuild. The ledger's rules ran ~1060px while the longest answer
+     stopped well short of them, so they read as an unfinished table rather than
+     an inscription; the block was left-anchored in a full-bleed section, which
+     left the right third void. Four rows became a 2x2 plate: the pairs fill the
+     width, the rules are unnecessary because the red question already separates
+     them, and the vertical run halves. The labels are the buyer's actual
+     questions now, not nouns, which is what earns this band its place in front
+     of the qualification gate -- and with the question carrying the label, the
+     ANSWER is the loud half again.
+
+     Round 10: the questions were 12px sanguis caps at 0.26em over a statement,
+     four times down the plate -- which is the eyebrow kicker this project bans
+     by name in PRODUCT.md, and it is what made the band read as cheap (Luke).
+     Sanguis is also the page's interference colour; spending it on four static
+     labels at once is the loudest thing on the screen saying nothing.
+
+     These are a buyer's actual words, so they are set in the voice this page
+     already uses for anything spoken or written: Cormorant italic, the same
+     face carrying every quote, the scrub captions and the interludes. The
+     question asks quietly in the serif, the answer replies in structural
+     Archivo, and the contrast is carried by FACE and colour rather than by
+     shouting a micro-label. Read down the plate it is now a dialogue. */
+  .answers { max-width: none; padding-top: 0; padding-bottom: clamp(50px, 7vh, 80px); }
+  .answers-head { display: block; text-align: center; margin-bottom: clamp(38px, 5vh, 62px); }
+  /* One column is the floor. Two only where they genuinely fit: the colonnade
+     pads this band by 23vw for the pillars, so below ~1200px the columns shrink
+     faster than the type and the longest answer tips onto a third line. Swept
+     every 100px -- ragged at 1000 and 1100, even from 1200 up. */
+  .answers-grid { display: grid; grid-template-columns: 1fr; row-gap: 34px;
+                  max-width: 980px; margin: 0 auto; }
+  .answers-grid > div { text-align: center; }
+  @media (min-width: 1200px) {
+    .answers-grid { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto);
+                    column-gap: clamp(32px, 4.2vw, 64px); row-gap: clamp(38px, 5.5vh, 66px); }
+    /* subgrid, so every answer starts on the same line as the one beside it. A
+       one-line question next to a two-line one used to push its answer down on
+       its own, and four pairs each sizing themselves is what read as loose
+       fragments rather than a plate. */
+    .answers-grid > div { grid-row: span 2; display: grid; grid-template-rows: subgrid;
+                          row-gap: 11px; text-align: left; }
+    /* the right column reads to the right edge, so the plate is flush on BOTH
+       outer edges instead of trailing off into the gutter (Luke, round 10) */
+    .answers-grid > div:nth-child(even) { text-align: right; }
+  }
+  .answers-grid .q-label { display: block; font-family: "Cormorant", serif;
+                           font-style: italic; font-weight: 500; text-transform: none;
+                           font-size: clamp(1.05rem, 1.45vw, 1.22rem); line-height: 1.25;
+                           /* Cormorant is a high-contrast face and thins out as light
+                              type on near-black: a touch of tracking holds it open */
+                           letter-spacing: 0.012em; color: var(--ink-dim);
+                           /* one column is plain block flow, so the gap to the
+                              answer lives here; the subgrid's row-gap owns it at
+                              two columns and zeroes this out */
+                           margin-bottom: 9px; }
+  @media (min-width: 1200px) { .answers-grid .q-label { margin-bottom: 0; } }
+  /* The answer speaks in the page's DISPLAY voice. Every other display line on
+     this site -- the logotype, every h2 -- is Archivo at "wdth" 125, and this
+     was the only one left at the default width and a middling 500, which is why
+     it read as a different typeface sitting under "WE TAKE ON" (Luke, round 10:
+     "doesn't look like the correct font"). Expanded and at 700 it is unmistakably
+     the same family, without becoming a headline: sentence case, because four
+     uppercase answers would fight the section headings and cost the reading.
+     text-wrap NORMAL, not balance: balance evens the ragged edge by shortening
+     every line, which pushed the longest answer onto a third line and was half
+     of what read as crooked. Sized so that longest answer settles at ~92% of its
+     column on two lines -- at 1.45rem it filled 99% and a hair of tracking or a
+     different engine's metrics tipped it to three. */
+  .answers-grid .a { display: block; font-size: clamp(1.15rem, 1.6vw, 1.35rem);
+                     font-variation-settings: "wdth" 125; font-weight: 700;
+                     line-height: 1.26; letter-spacing: 0; text-wrap: normal;
+                     color: var(--ink); }
+  /* the support answer carries the mailto; without this it renders browser blue */
+  .answers-grid .a a { color: var(--accent); text-decoration: underline;
+                       text-underline-offset: 5px; text-decoration-thickness: 1px; }
+
+  /* The same lowercase-numeral bullets the instruments use, for the two product
+     bands. "The whole day, in one hand" was a headline and a single sentence
+     against a full phone: the claim needs its evidence next to it (Luke). */
+  .band-points { list-style: none; margin-top: 26px; padding-left: 1.45em; position: relative; max-width: 46ch; }
+  .band-points::before { content: ''; position: absolute; left: 0; top: 0.15em; bottom: 0.15em; width: 1px;
+    background: linear-gradient(180deg, transparent, #2A2A2E 16%, #2A2A2E 84%, transparent); }
+  .band-points li { position: relative; padding-left: 2.3em; margin-bottom: 1.2em;
+    color: var(--ink-dim); font-size: clamp(0.95rem, 1.05vw, 1.12rem); line-height: 1.55; }
+  .band-points li:last-child { margin-bottom: 0; }
+  .band-points li b { color: var(--ink); font-weight: 500; }
+  .band-points li::before { content: attr(data-rn); position: absolute; left: 0; top: -0.06em;
+    font-family: "Cormorant", serif; font-style: italic; font-weight: 500;
+    font-size: 1.5em; line-height: 1; color: var(--accent); letter-spacing: 0.06em; }
+
+  /* ---------- admission ---------- */
+  .band.admission { max-width: 1100px; margin-left: auto; margin-right: auto; text-align: center; }
+  .admission h2 { margin-left: auto; margin-right: auto; }
+  .admission p.body { margin-left: auto; margin-right: auto; }
+  .admission .quals { margin-top: 60px; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #1E1E21; border-bottom: 1px solid #1E1E21; }
+  .admission .quals > div { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 44px 24px; }
+  .admission .quals > div + div { border-left: 1px solid #1E1E21; }
+  .admission .quals .rn { height: clamp(64px, 8vw, 110px); width: auto; }
+  .admission .quals .q { font-size: 13px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; max-width: 24ch; line-height: 1.7; }
+  .admission .actions { margin-top: 54px; justify-content: center; }
+
+  /* ---------- closer ---------- */
+  .closer { padding-top: clamp(120px, 22vh, 220px); padding-bottom: clamp(120px, 22vh, 220px); text-align: center; position: relative; overflow: hidden; }
+  .closer h2 { font-size: clamp(2.2rem, 6.5vw, 5rem); margin: 0 auto; max-width: 16ch; }
+  .closer .written { display: block; font-size: clamp(1.2rem, 2.2vw, 1.7rem); color: var(--ink-dim); margin-top: 26px; }
+  .closer .cta { margin-top: 48px; }
+  footer.site { padding-bottom: 34px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); }
+
+
+  @media (max-width: 780px) {
+    /* The statue runs at FULL strength (Luke, round 8). It used to be knocked
+       back to 0.45 AND scrimmed, which left a ghost. Nothing sits over its head
+       or face -- the statue starts at 36% of the screen and the headline has
+       finished by 42% -- so the scrim now stays completely clear through that
+       band and only does its work lower down, where the CTA, the platform link
+       and the proof bar cross the body. Bottom-heavy, fading to solid black at
+       the foot of the section rather than dimming the whole figure (QA F-05). */
+    #statue { right: -22vw; height: 64svh; }
+    .hero::after {
+      content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: linear-gradient(180deg,
+        rgba(10,10,11,0) 0%, rgba(10,10,11,0) 50%, rgba(10,10,11,0.34) 62%,
+        rgba(10,10,11,0.84) 78%, rgba(10,10,11,0.97) 92%, #0A0A0B 100%);
+    }
+    /* The figure's brightest mass is its shoulder, and it starts at a hard edge
+       243px in. The strapline used to run to 322px, straight across it, which
+       measured 1.8:1 against bone -- unreadable. Stopping the line short of the
+       figure fixes it WITHOUT dimming the figure, which is the whole point. */
+    .hero .written { max-width: 26ch; }
+    .stage { justify-content: center; padding-bottom: 0; }
+    h1 { font-size: clamp(2rem, 10vw, 2.8rem); }
+    .proof { padding-bottom: 40px; }
+    /* pinned mini-cinema: content-sized box that sticks at the centred position,
+       so the next section arrives right under the caption zone when the pin ends */
+    .scrub .pinbox {
+      height: calc(56.25vw + 250px);
+      top: calc(72px + max(12px, (100svh - 72px - 56.25vw - 250px) / 2));
+      overflow: visible;
+    }
+    #colosseum {
+      position: absolute; inset: auto; left: 0; top: 0;
+      width: 100%; aspect-ratio: 16/9; height: auto; display: block;
+    }
+    .scrub .lede, .scrub .caption, .scrub .caption.pos-br, .scrub .caption.pos-tl {
+      position: absolute; left: 24px; right: 24px;
+      top: calc(56.25vw + 30px); bottom: auto;
+      margin: 0; max-width: none; text-align: left;
+    }
+    /* the mobile pinbox is content-sized and the caption sits inside it, so the
+       cue drops just below the box rather than onto the last line of copy */
+    .scroll-cue { bottom: -8px; }
+    .scroll-cue { gap: 7px; }
+    .scroll-cue span { font-size: 15px; letter-spacing: 0.03em; }
+    /* keep the barrel's proportions: the old override was square, from when
+       this was a 24x24 arrow */
+    .scroll-cue svg { width: 20px; height: 32px; }
+    .band.split, .band.split.flip, .band.split.lead { grid-template-columns: 1fr; }
+    .band.split div { order: 1; }
+    /* `.band.split div` also matches .phone-wrap and outranks a bare .phone-wrap
+       rule, so the management phone was landing ABOVE its own copy. The image
+       belongs under the text it illustrates, in both split bands (Luke, round 8). */
+    .band.split .phone-wrap { order: 2; }
+    /* the problem's statue and the agents' device lead their sections; only
+       management's phone follows its copy (Luke, round 8) */
+    .band.split.lead .sidefig { order: 0; margin: 0 auto 26px; }
+    #platform .phone-wrap { order: 0; margin-top: 0; margin-bottom: 26px; }
+    .band.split .actions.midcta { order: 3; }   /* the CTA still closes the band */
+    .sidefig { order: 2; max-height: 56svh; width: min(100%, 400px); margin: 10px auto 0; }
+    /* The bust's canvas carries ~35px of its own letterbox under the figure, and
+       that used to stack on top of a 64px band padding AND the next section's
+       64px: 163px of black under the statue. Trimming this band's own padding
+       puts the gap back on the page's normal 128px rhythm. */
+    .band.split.lead { padding-bottom: 20px; }
+    /* 58vw, not 62: the device's canvas is 1.70 body-widths, so 62vw put 411px
+       of canvas on a 390px screen and the page could be dragged sideways. */
+    .phone-wrap { order: 2; margin-top: 18px; --pw: min(58vw, 270px); }
+    /* .band.split div sets order:1 on the inner .phone div; keep the caption after it */
+    .phone-wrap .phone-cap { order: 2; }
+    .band h2 { font-size: clamp(1.75rem, 7.6vw, 2.5rem); }
+    /* phone rhythm: desktop's 16-22vh section padding reads as dead black on a phone */
+    .band, .band.split.flip { padding-top: 64px; padding-bottom: 64px; }
+    .interlude { padding-top: 84px; padding-bottom: 84px; }
+    .colonnade .interlude { padding-top: 110px; padding-bottom: 72px; }
+    .closer { padding-top: 96px; padding-bottom: 110px; }
+    header.scrolled { background: rgba(10, 10, 11, 0.92); }
+    /* On a phone the role does take its own line -- the credit will not fit on
+       one -- and it drops the comma with it (Luke, round 10). */
+    .proofpanel .src .role, .band blockquote footer .role {
+      display: block; width: 100%; margin-top: 4px; }
+    .proofpanel .src .role::before, .band blockquote footer .role::before { content: none; }
+    .proofpanel .src .who { text-align: center; }
+    /* stacked, the two-column ledger loses its structure and reads as a ragged
+       left edge: centre it so label and answer sit as a pair (Luke, round 8) */
+    .answers-grid .q-label { margin-bottom: 9px; }
+    .answers-head { margin-bottom: 32px; }
+    /* three portrait tiles in a phone-width row read as thumbnails: stack them */
+    .voices-grid { grid-template-columns: 1fr; max-width: min(66vw, 280px); gap: 18px; }
+    /* On a phone the row does not play itself at all (Luke, round 12). Three
+       clips that start on their own, one of which you then have to unmute, is a
+       desktop idea: on a phone it spends his data before he has asked for
+       anything and it puts the sound behind a second tap. So each tile carries
+       a real transport instead of the sound chip, and one tap plays one clip
+       WITH its sound, from a paused element -- which is also the only unmute
+       path on iOS that never goes near the muted trick-play engine that broke
+       this row in the first place (LESSONS, round 12). */
+    .admission .quals { grid-template-columns: 1fr; }
+    .admission .quals > div { padding: 34px 24px; }
+    .admission .quals > div + div { border-left: none; border-top: 1px solid #1E1E21; }
+        }
+</style>
+</head>
+<body>
+
+<main>
+  <section class="hero pad">
+    <header>
+      <a class="logotype" href="#" aria-label="Strada"><span class="lg-core">STRADA</span><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i></a>
+      <nav><a href="#support">SUPPORT</a></nav>
+    </header>
+    <div class="stage">
+      <h1>The sales AI <span class="zw">operating system.</span></h1>
+      <p class="written">The app Strada's agents and managers <em>run the day from.</em></p>
+      <div class="actions">
+        <a class="cta" href="#instruments">See the app</a>
+        <a class="quiet" href="#support">Support</a>
+      </div>
+    </div>
+    <p class="proof">
+      <b>For Strada agents and managers</b> <span class="sep">·</span>
+      <b>iOS and Android</b> <span class="sep">·</span>
+      Live at Strada, Dubai
+    </p>
+    <canvas id="statue" aria-hidden="true"></canvas>
+  </section>
+
+  <section class="band pad split lead">
+    <canvas id="fig-problem" class="sidefig" aria-hidden="true"></canvas>
+    <div>
+      <span class="numeral"><i class="rn-s">I</i> <b>·</b> The app</span>
+      <h2 class="zh">Built around the floor, <span class="zg">not the admin.</span></h2>
+      <p class="body">Strada is the internal app for the Strada sales team. It ranks the morning
+      queue, briefs every call, files what agents say out loud, and writes it all straight back
+      to the company CRM.</p>
+      <p class="body"><b>Agents use it</b>, because it was built around how the floor actually
+      sells. This site is the app's home: what it does, and where to reach support.</p>
+    </div>
+  </section>
+
+
+  <section class="band pad split" id="platform">
+    <div>
+      <span class="numeral"><i class="rn-s">II</i> <b>·</b> For agents</span>
+      <h2 class="zh">The whole day, in <span class="zg">one hand.</span></h2>
+      <p class="body">Queue, matching, briefs, follow-ups: the day runs from the phone and is written
+      straight back to the CRM.</p>
+      <ul class="band-points">
+        <li data-rn="i"><b>The morning queue is already ranked.</b> Who to call first and the reason why, before anyone opens a spreadsheet.</li>
+        <li data-rn="ii"><b>Speak instead of type.</b> A voice memo becomes the CRM update, and the changes are ticked off before it saves.</li>
+        <li data-rn="iii"><b>Matched against the whole book.</b> Every lead is scored against every listing in the org, not only the ones you happen to own.</li>
+      </ul>
+    </div>
+    <div class="phone-wrap" data-dev data-morph>
+      <canvas class="morph" aria-hidden="true"></canvas>
+      <canvas class="morph-fizz" aria-hidden="true"></canvas>
+      <div class="band-dev"><div class="band-gl"></div></div>
+      <div class="phone"><div class="screen"><video data-autoplay src="assets/band-agents-v9.mp4" poster="assets/band-agents-v6-poster.webp" preload="none" muted playsinline loop crossorigin="anonymous" aria-label="The Strada field app: the morning queue, then into a lead"></video></div></div>
+      <p class="phone-cap">The Strada field app.</p>
+    </div>
+  </section>
+
+  <section class="band pad split flip">
+    <div class="phone-wrap" data-dev>
+      <div class="band-dev"><div class="band-gl"></div></div>
+      <div class="phone"><div class="screen"><video data-autoplay src="assets/feat-manager-v9.mp4" poster="assets/feat-manager-v9-poster.webp" preload="none" muted playsinline loop crossorigin="anonymous" aria-label="The Strada manager view: the team's billed commission, then the floor's 52 agents against target"></video></div></div>
+      <p class="phone-cap">The Strada manager view.</p>
+    </div>
+    <div>
+      <span class="numeral"><i class="rn-s">III</i> <b>·</b> For management</span>
+      <h2 class="zh">See the floor <span class="zg">without asking</span> for a report.</h2>
+      <p class="body">Reports land weekly. Alerts fire the moment a deal closes or a target slips.
+      Untouched leads surface by agent. Managers see the floor without chasing it.</p>
+    </div>
+  </section>
+
+  <section class="features" id="instruments" aria-label="The six instruments of the platform">
+      <div class="feat-head">
+        <span class="numeral"><i class="rn-s">IV</i> <b>·</b> The instruments</span>
+        <h2 class="zh">Six instruments. <span class="zg">One machine.</span></h2>
+        <span class="written">All in the app, all running at Strada today.</span>
+      </div>
+      <div class="feat-screen">
+      <div class="feat-stage">
+        <div class="feat-copy">
+          <div class="feat-item" data-i="0">
+            <span class="numeral"><i class="rn-s">IV.i</i> <b>·</b> Guida AI</span>
+            <h3>The co-pilot on every deal.</h3>
+            <p>An AI agent trained on sales, with <b>oversight of every client's needs</b> across your whole book. Powered by Claude.</p>
+          </div>
+          <div class="feat-item" data-i="1">
+            <span class="numeral"><i class="rn-s">IV.ii</i> <b>·</b> Reactivation</span>
+            <h3>Dead leads, worked back to life.</h3>
+            <p>Scores the leads you wrote off and hands the best of them back to your agents. At Strada, <b>1 in 4 closed buyers</b> come from this queue.</p>
+          </div>
+          <div class="feat-item" data-i="2">
+            <span class="numeral"><i class="rn-s">IV.iii</i> <b>·</b> Matchmaker</span>
+            <h3>Every listing finds its buyer.</h3>
+            <p>Works through your listings and recommends <b>the leads to contact</b>, across the whole sales org, inside Guida.</p>
+          </div>
+          <div class="feat-item" data-i="3">
+            <span class="numeral"><i class="rn-s">IV.iv</i> <b>·</b> The voice memo</span>
+            <h3>Say it once. It files itself.</h3>
+            <p>Speak a note when you come out of a call or a viewing. It finds the lead, writes the summary, updates the fields and books the next action. <b>You tick what is right</b> before anything saves.</p>
+          </div>
+          <div class="feat-item" data-i="4">
+            <span class="numeral"><i class="rn-s">IV.v</i> <b>·</b> Owners</span>
+            <h3>Where the next listing comes from.</h3>
+            <p>Every other instrument here works demand. This one works <b>supply</b>. We bring the owner base, nearly half a million units, and turn it into a ranked call list for one tower.</p>
+          </div>
+          <div class="feat-item" data-i="5">
+            <span class="numeral"><i class="rn-s">IV.vi</i> <b>·</b> Guida for managers</span>
+            <h3>The floor, answerable.</h3>
+            <p>Commission billed, every agent against their number, and <b>the books going cold</b> before anyone reports them. Then ask it a question about any of it.</p>
+          </div>
+        </div>
+        <div class="feat-devcol">
+          <div class="feat-dwrap">
+            <div class="feat-gl"></div>
+
+            <div class="vsrc">
+              <video data-i="0" src="assets/feat-guida-v9.mp4" poster="assets/feat-guida-v9-poster.webp" preload="none" muted playsinline crossorigin="anonymous" aria-label="Guida AI: a question asked of the book, answered from the record"></video>
+              <video data-i="1" src="assets/feat-reactivation-v11.mp4" poster="assets/feat-reactivation-v11-poster.webp" preload="none" muted playsinline crossorigin="anonymous" aria-label="The reactivation queue, into a dormant lead, its next action, and the activity timeline that scored it back"></video>
+              <video data-i="2" src="assets/feat-match-v9.mp4" poster="assets/feat-match-v9-poster.webp" preload="none" muted playsinline crossorigin="anonymous" aria-label="Matchmaker: a listing and the leads to contact for it"></video>
+              <video data-i="3" src="assets/feat-whatsapp-v9.mp4" poster="assets/feat-whatsapp-v9-poster.webp" preload="none" muted playsinline crossorigin="anonymous" aria-label="A voice memo transcribed, then the CRM changes ticked before saving"></video>
+              <video data-i="4" src="assets/feat-owners-v11.mp4" poster="assets/feat-owners-v11-poster.webp" preload="none" muted playsinline crossorigin="anonymous" aria-label="The owners database: a tower's owners ranked by tenancy expiry, into the pre-call brief"></video>
+              <video data-i="5" src="assets/feat-manager-v14.mp4" poster="assets/feat-manager-v14-poster.webp" preload="none" muted playsinline crossorigin="anonymous" aria-label="The manager view: billed commission, the floor ranked by leads at risk, every agent against target, then Guida answering a question about one of them"></video>
+            </div>
+
+            <div class="feat-flat">
+              <div class="shell"></div>
+              <div class="screenbox"></div>
+            </div>
+
+            <!-- pull-outs: exact card cuts from the shipped clips' own frames.
+                 At data-t0 the film pauses, the device recedes and the moment
+                 lifts out for a hold derived from its word count. -->
+            <div class="chip" data-i="0" data-t0="10.0" data-words="24" style="--cy:18%; --sx:0.5; --sy:0.4605; --sw:0.9129; --sh:0.2623"><img src="assets/chip7b-guida-call-2x.webp?v=1" alt=""><p class="chip-note">Agents open the app to the one call worth making first, with the reason already attached.</p></div>
+            <div class="chip" data-i="0" data-t0="17.0" data-words="28" style="--cy:40%; --sx:0.5; --sy:0.7783; --sw:0.9129; --sh:0.2288"><img src="assets/chip7b-guida-draft-2x.webp?v=1" alt=""><p class="chip-note">The follow-up is drafted while the call is still fresh, so nothing gets retyped later.</p></div>
+            <div class="chip" data-i="1" data-t0="9.8"  data-words="13" style="--cy:34%; --sx:0.4984; --sy:0.5171; --sw:0.9129; --sh:0.1237"><img src="assets/chip7b-react-next-2x.webp?v=1" alt=""><p class="chip-note">Nobody has to work out what to do next. The move is already chosen, and the reason is under it.</p></div>
+            <div class="chip" data-i="1" data-t0="16.6" data-words="42" style="--cy:30%; --sx:0.5; --sy:0.3629; --sw:0.9323; --sh:0.1937"><img src="assets/chip11-react-timeline-2x.webp?v=1" alt=""><p class="chip-note">Every call, viewing and brochure open on one timeline. That history is what the queue scores.</p></div>
+            <div class="chip" data-i="2" data-t0="12.6" data-words="20" style="--cy:36%; --sx:0.5; --sy:0.5857; --sw:0.9161; --sh:0.2265"><img src="assets/chip8-match-buyers-2x.webp?v=1" alt=""><p class="chip-note">Every buyer who asked about this exact unit, and how far each one got. Agents call people who already wanted it.</p></div>
+            <div class="chip" data-i="3" data-t0="21.0" data-words="34" style="--cy:22%; --sx:0.4984; --sy:0.7344; --sw:0.9129; --sh:0.2347"><img src="assets/chip10-memo-crm-2x.webp?v=1" alt=""><p class="chip-note">Whatever the agent said out loud is written back to Salesforce. Nobody retypes a viewing at 9pm.</p></div>
+            <div class="chip" data-i="4" data-t0="1.6"  data-words="16" style="--cy:26%; --sx:0.5; --sy:0.4657; --sw:0.9129; --sh:0.1297"><img src="assets/chip11-owners-row-2x.webp?v=1" alt=""><p class="chip-note">A tower's owners, ranked. The reason to call is on the row, so nobody picks a name at random.</p></div>
+            <div class="chip" data-i="4" data-t0="6.4"  data-words="29" style="--cy:30%; --sx:0.5; --sy:0.4132; --sw:0.9129; --sh:0.1587"><img src="assets/chip11-owners-contract-2x.webp?v=1" alt=""><p class="chip-note">Tenancies end on a date. That date is when an owner will listen, and the list is built from it.</p></div>
+            <div class="chip" data-i="4" data-t0="10.6" data-words="40" style="--cy:34%; --sx:0.4984; --sy:0.6114; --sw:0.9129; --sh:0.2168"><img src="assets/chip11-owners-comps-2x.webp?v=1" alt=""><p class="chip-note">The agent opens the call already knowing what the neighbours sold for. That is the whole conversation.</p></div>
+            <div class="chip" data-i="5" data-t0="2.2"  data-words="7"  style="--cy:30%; --sx:0.498; --sy:0.338; --sw:0.913; --sh:0.146"><img src="assets/chip8-mgr-money-2x.webp?v=2" alt=""><p class="chip-note">The number the floor is judged on, live, without anyone building a report.</p></div>
+            <div class="chip" data-i="5" data-t0="11.0" data-words="18" style="--cy:32%; --sx:0.5; --sy:0.417; --sw:0.913; --sh:0.170"><img src="assets/chip11-mgr-risk-2x.webp?v=1" alt=""><p class="chip-note">The floor ranked by the books going cold, not by who is winning. That is the list a manager can act on.</p></div>
+            <div class="chip" data-i="5" data-t0="17.8" data-words="22" style="--cy:34%; --sx:0.501; --sy:0.721; --sw:0.924; --sh:0.203"><img src="assets/chip11-mgr-target-2x.webp?v=1" alt=""><p class="chip-note">Every agent against their own number, billed rather than forecast. Nobody assembles this on a Sunday night.</p></div>
+            <div class="chip" data-i="5" data-t0="28.0" data-words="20" style="--cy:32%; --sx:0.5; --sy:0.419; --sw:0.877; --sh:0.170"><img src="assets/chip11-mgr-charts-2x.webp?v=1" alt=""><p class="chip-note">One agent's own days, not the floor average. The shape of the week is the coaching conversation.</p></div>
+            <div class="chip" data-i="5" data-t0="36.5" data-words="34" style="--cy:30%; --sx:0.5; --sy:0.486; --sw:0.913; --sh:0.219"><img src="assets/chip11-mgr-guida-2x.webp?v=1" alt=""><p class="chip-note">Ask about one agent in plain English and the answer comes back with its workings, not just a figure.</p></div>
+          </div>
+          <p class="devcap">The Strada app, on camera.</p>
+        </div>
+
+        <div class="feat-details">
+          <div class="dset" data-i="0">
+            <ul>
+              <li data-rn="i">Reads and writes your <b>actual Salesforce</b>. The answer is the record, not a summary of it.</li>
+              <li data-rn="ii">Every recommendation carries its evidence: the signals that scored it, and what it still doesn't know.</li>
+              <li data-rn="iii">Flags the question it can't answer yet, instead of guessing. <b>"Decision timeline unclear, ask on the next call."</b></li>
+            </ul>
+          </div>
+          <div class="dset" data-i="1">
+            <ul>
+              <li data-rn="i">The queue is <b>recomputed every night at midnight</b>, Dubai time. It is never yesterday's list.</li>
+              <li data-rn="ii"><b>Every call is transcribed</b> onto the lead's timeline, and dormancy is judged from that, not a last-touched date nobody updated.</li>
+              <li data-rn="iii">Routed by specialty, so a rentals agent never gets handed a buyer's lead.</li>
+            </ul>
+          </div>
+          <div class="dset" data-i="2">
+            <ul>
+              <li data-rn="i">Matches against the <b>whole org's inventory</b>, not only the listings you happen to own.</li>
+              <li data-rn="ii">Flags a listing whose views are running <b>below comparables</b>, before the owner asks why.</li>
+              <li data-rn="iii">Broker blasts in the deal groups parsed into structured listings, screenshots included. The same unit across ten groups collapses into <b>one</b>.</li>
+            </ul>
+          </div>
+          <div class="dset" data-i="3">
+            <ul>
+              <li data-rn="i">It finds the lead out of <b>your own pipeline</b>, from the name and whatever detail you happened to mention.</li>
+              <li data-rn="ii">The commitments come out with it: <b>the budget, the area, the viewing, the date and time promised</b>, and a follow-up message ready to send.</li>
+              <li data-rn="iii">Every change is <b>proposed, not applied</b>. What the agent ticks is written to Salesforce in Salesforce's own format, so the reporting still adds up.</li>
+            </ul>
+          </div>
+          <div class="dset" data-i="4">
+            <ul>
+              <li data-rn="i">Ranked by <b>when the tenancy ends</b>. An owner is worth calling in the notice window, and the list knows the date.</li>
+              <li data-rn="ii">The brief opens with what the owner paid, what the same stack sold for, and <b>every call the firm has already made</b>.</li>
+              <li data-rn="iii">Do-not-contact is enforced on the server, and <b>every dial files itself to Salesforce</b>. Dials made offline replay on reconnect.</li>
+            </ul>
+          </div>
+          <div class="dset" data-i="5">
+            <ul>
+              <li data-rn="i">Sort the floor by <b>leads at risk</b>, not just by who is winning. A quiet book shows up before the month does.</li>
+              <li data-rn="ii">Every agent against their number, <b>billed rather than forecast</b>, with the activity that explains the gap.</li>
+              <li data-rn="iii">Ask about one of them in plain English and get <b>the workings</b> back, not just the figure.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- real arrows, drawn: a chevron on its own reads as a maths sign -->
+        <div class="feat-nav">
+          <button id="featprev" type="button" aria-label="Previous instrument">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <path d="M27 16H6M14 7l-9 9 9 9"/>
+            </svg>
+          </button>
+          <button id="featnext" type="button" aria-label="Next instrument">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <path d="M5 16h21M18 7l9 9-9 9"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="feat-foot">
+        <div class="feat-progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      </div>
+  </section>
+
+  <section class="scrub" id="architecture" data-frames="135">
+    <div class="pinbox">
+      <canvas id="colosseum" aria-label="The Roman Colosseum constructing itself as you scroll"></canvas>
+      <!-- Two slots, top-left and bottom-right, and each one HOLDS its caption
+           until the next caption for that same slot is ready. There are always
+           two on screen, so nothing flashes on and straight back off: the lede
+           is still there when V.i arrives, and V.i is still there when V.ii
+           replaces the lede. Each r1 is the r0 of the next one in its slot. -->
+      <div class="lede" data-r0="0" data-r1="0.30">
+        <span class="numeral"><i class="rn-s">V</i> <b>·</b> The architecture</span>
+        <h2>Built stone by stone.</h2>
+        <p class="written">Two thousand years on, it still stands.</p>
+      </div>
+      <div class="caption pos-br" data-r0="0.05" data-r1="0.55">
+        <span class="numeral"><i class="rn-s">V.i</i> <b>·</b> The agents <b>·</b> AI lead engine</span>
+        <h3>Your pipeline, worked around the clock.</h3>
+        <p>AI that ranks, briefs and reactivates before the floor sits down.</p>
+      </div>
+      <div class="caption pos-tl" data-r0="0.30" data-r1="0.80">
+        <span class="numeral"><i class="rn-s">V.ii</i> <b>·</b> The field app <b>·</b> mobile CRM</span>
+        <h3>The entire day, run from the phone.</h3>
+        <p>Speak instead of type. The CRM fills itself.</p>
+      </div>
+      <div class="caption pos-br" data-r0="0.55" data-r1="1.01">
+        <span class="numeral"><i class="rn-s">V.iii</i> <b>·</b> The overseer <b>·</b> live floor dashboard</span>
+        <h3>The floor, read in real time.</h3>
+        <p>Every call, viewing and closed deal, as it happens.</p>
+      </div>
+      <div class="caption pos-tl" data-r0="0.80" data-r1="1.01">
+        <span class="numeral"><i class="rn-s">V.iv</i> <b>·</b> The ledger <b>·</b> automated reporting</span>
+        <h3>Reporting that writes itself.</h3>
+        <p>Numbers that finally agree with each other.</p>
+      </div>
+      <!-- the arena builds as you scroll, and a pinned section that stops
+           moving reads as the end of the site. This says otherwise. -->
+      <!-- icon above the word, the way the gesture reads: the dot travels down
+           the barrel and the label names it -->
+      <div class="scroll-cue" aria-hidden="true">
+        <svg viewBox="0 0 26 42" focusable="false">
+          <rect x="1.2" y="1.2" width="23.6" height="39.6" rx="11.8"/>
+          <circle class="dot" cx="13" cy="11.5" r="2.6"/>
+        </svg>
+        <span>Scroll</span>
+      </div>
+    </div>
+  </section>
+
+
+  <div class="colonnade">
+  <canvas id="beam" class="beam" aria-hidden="true"></canvas>
+  <canvas id="pillar-l" class="pillar left" aria-hidden="true"></canvas>
+  <canvas id="pillar-r" class="pillar right" aria-hidden="true"></canvas>
+
+  <section class="interlude pad">
+    <p class="written">Built in Dubai. <b>Run on the floor every day.</b></p>
+  </section>
+
+  <section class="band pad answers" id="support" aria-label="About the app, and support">
+    <span class="numeral answers-head"><i class="rn-s">VI</i> <b>·</b> The app, and support</span>
+    <div class="answers-grid">
+      <!-- Ordered so each ROW is even: the two one-line answers share the top
+           row, the two that wrap share the bottom (Luke, round 10). -->
+      <div><span class="q-label">Who is it for?</span><span class="a">Strada agents and managers.</span></div>
+      <div><span class="q-label">How do I sign in?</span><span class="a">With your Strada work account.</span></div>
+      <div><span class="q-label">Which platforms?</span><span class="a">iOS and Android, built for the phone in your pocket.</span></div>
+      <div><span class="q-label">Need help?</span><span class="a">Write to <a href="mailto:support@stradauae.com">support@stradauae.com</a> and a person answers.</span></div>
+    </div>
+  </section>
+
+  <section class="closer pad">
+    <h2 class="zh">The structure <span class="zg">stands.</span></h2>
+    <span class="written">The arena outlasted the empire that built it. The app is built to the same standard.</span><br>
+    <a class="cta" href="mailto:support@stradauae.com">Contact support</a>
+  </section>
+
+  <footer class="site pad">
+    <span>STRADA · MMXXVI · A MITHRIL PRODUCT</span>
+    <a href="privacy.html">Privacy</a>
+  </footer>
+  </div>
+</main>
+
+
+<script>
+/* ---------- events: none. This site sends nothing anywhere. The LUDUS
+   Supabase tracker was gutted in the clone so Strada traffic never lands in
+   the LUDUS analytics; track() stays as a no-op because the engine code
+   below still calls it. ---------- */
+function track() {}
+
+/* ---------- WebGL, once, for both device sections ---------- */
+const LV_GL = (() => {
+  try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); }
+  catch { return false; }
+})();
+// The BUILT bundle, not the source: assets/device3d.js is the readable file to
+// edit, and `node _src/three-slim/build.mjs` tree-shakes it together with the
+// slice of three.js it uses. Shipping the raw modules meant 519KB gzipped of
+// unminified three had to land before the device could draw a frame; the bundle
+// is 242KB. Neither the source nor assets/three/ is deployed.
+const LV_DEVICE = 'assets/device3d.min.js?v=12';
+
+/* ---------- a phone on this site must never be a black rectangle ----------
+   A <video> with nothing to paint paints nothing, and on this page nothing is
+   pure black on pure black: it reads as a broken phone, not as a loading one.
+   That is what band III looked like when its film went missing in production
+   (round 11) -- and the film is only one of the ways it can happen. A blocked
+   network, an unsupported codec, a decoder evicted under memory pressure and
+   iOS Low Power Mode all end at the same black rectangle.
+
+   Every film here already ships a poster: the first frame of itself. Painting
+   that poster as the video element's own BACKGROUND means the still sits
+   behind the film permanently. Video frames draw over it the instant they
+   exist, so nothing changes when things work; when they do not, the phone
+   shows its screen instead of a hole. No new requests -- the poster attribute
+   was already fetching it. */
+(() => {
+  for (const v of document.querySelectorAll('video[poster]')) {
+    const p = v.getAttribute('poster');
+    if (!p) continue;
+    v.style.backgroundImage = `url("${p}")`;
+    v.style.backgroundSize = 'cover';
+    v.style.backgroundPosition = 'center';
+    v.style.backgroundRepeat = 'no-repeat';
+  }
+})();
+
+// One import for the whole page, and it starts EARLY. The instruments are
+// section IV: a visitor spends many seconds in the hero, the problem band and
+// the Colosseum scrub before they arrive, and that runway was going unused --
+// the module only began downloading 600px out, so the phone was still landing
+// while they looked at it. Warming it during idle time after load hides the
+// whole download behind reading they were doing anyway.
+//
+// Deliberately NOT a <link rel=modulepreload>: that races the hero's own assets
+// for the first paint, which is exactly the mistake round 9 fixed for the films
+// (priming everything at once is the same as priming nothing). This waits for
+// load, then for the browser to be idle, and it skips visitors who will never
+// see a 3D device at all -- no WebGL, reduced motion, or Data Saver on.
+let devModule = null;
+function loadDeviceModule() {
+  if (!devModule) {
+    devModule = import('./' + LV_DEVICE);
+    // a transient failure must not poison the cache for boot(), which has its
+    // own .catch and its own flat-shell fallback
+    devModule.catch(() => { devModule = null; });
+  }
+  return devModule;
+}
+if (LV_GL && !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    !(navigator.connection && navigator.connection.saveData)) {
+  addEventListener('load', () => {
+    const idle = window.requestIdleCallback || (f => setTimeout(f, 1200));
+    idle(() => { loadDeviceModule().catch(() => {}); }, { timeout: 4000 });
+  });
+}
+
+/* ---------- the instruments: six features on the real 3D device ----------
+   The arrows are the whole navigation. Nothing here reads scrollY: a pinned
+   stage that ignored your scroll is what round 6 rejected. The device module is
+   242KB gzipped, so it lands only once the section is within a screen of you. */
+(() => {
+  const section = document.querySelector('.features');
+  if (!section) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const vids  = [...section.querySelectorAll('.vsrc video')];
+  const items = [...section.querySelectorAll('.feat-item')];
+  const dsets = [...section.querySelectorAll('.dset')];
+  const dots  = [...section.querySelectorAll('.feat-progress i')];
+  const chips = [...section.querySelectorAll('.chip')];
+  const stage = section.querySelector('.feat-stage');
+  const copyEl = section.querySelector('.feat-copy');
+  const dwrap = section.querySelector('.feat-dwrap');
+  const gl    = section.querySelector('.feat-gl');
+  const flat  = section.querySelector('.feat-flat');
+  const flatbox = flat.querySelector('.screenbox');
+  const prevB = document.getElementById('featprev');
+  const nextB = document.getElementById('featnext');
+  const N = items.length;
+
+  // hold = reading time, not a constant: scan-reading UI copy runs ~170ms a
+  // word over a ~1.3s base to find and fix the eye
+  // The payoff now carries a note explaining WHY it matters, so the hold has to
+  // cover reading that too, not just registering the card. Count both, and let
+  // the note's own words drive it rather than a hand-set number that goes stale
+  // the moment the copy is edited. The note only starts fading in at 400ms.
+  const holdFor = c => {
+    const note = c.querySelector('.chip-note');
+    const noteWords = note ? note.textContent.trim().split(/\s+/).length : 0;
+    return Math.min(11000, 1600 + (+c.dataset.words || 10) * 120 + noteWords * 240);
+  };
+
+  // ---- one decision about which composition is on screen ----------------
+  // Measured, round 11: three columns need ~1160px of width, and the stage is a
+  // 100svh screen so it also needs real height. Below either, the copy column
+  // absorbed the entire shortfall (40px wide on an iPad Air, words breaking one
+  // letter per line). Portrait tablets belong in the stack; a phone on its side
+  // does NOT -- stacking 844x390 sized the device off the height budget and
+  // gave a 96px phone -- so it gets its own two-column case.
+  // 1240, not 1100: measured, a 1180-wide landscape iPad still fits three
+  // columns but leaves the copy 269px, which is under the readable minimum and
+  // makes the payoff smaller than the card it came out of.
+  const WIDE_MIN = 1240, TALL_MIN = 600;
+  function layoutMode() {
+    const w = innerWidth, h = innerHeight;
+    if (w >= WIDE_MIN && h >= TALL_MIN) return 'three';
+    // Landscape but not wide enough for three: keep the device beside the copy.
+    // Stacking a landscape window sizes the device off the height budget, which
+    // gave a 96px phone on a 844x390 handset.
+    if (w > h) return 'two';
+    return 'stack';
+  }
+  let mode = null;
+  function applyLayout() {
+    const m = layoutMode();
+    if (m === mode) return false;
+    mode = m;
+    section.classList.remove('lay-three', 'lay-stack', 'lay-two');
+    section.classList.add('lay-' + m);
+    return true;
+  }
+  applyLayout();
+  const isStacked = () => mode === 'stack';
+
+  let idx = 0, dev = null, spinning = false, inView = false, booted = false;
+  let outChip = null, chipTimer = null;
+  const seen = new Set();
+
+  // no WebGL or reduced motion: the flat shell, crossfading instead of spinning
+  function goFlat() {
+    flat.classList.add('on');
+    vids.forEach(v => flatbox.appendChild(v));
+    gl.style.display = 'none';
+  }
+
+  // Every v.play() here used to be fire-and-forget with the rejection swallowed.
+  // A rejection is not rare on a phone: iOS refuses autoplay in Low Power Mode,
+  // while a source is still loading (we see AbortError on this page), and under
+  // decoder pressure. One swallowed rejection and the film never starts -- the
+  // only thing that recovered it was a tap on an arrow, which is why Luke had to
+  // go next-then-back to get Guida playing. Retry, and let ANY interaction or a
+  // return to the tab recover it.
+  let tries = 0;
+  function ensurePlaying(v) {
+    if (!v || reduced || !inView || outChip || spinning) return;
+    if (!v.classList.contains('on') || !v.paused) { tries = 0; return; }
+    v.play().then(() => { tries = 0; }).catch(() => {
+      if (tries++ < 8) setTimeout(() => ensurePlaying(vids[idx]), 350);
+    });
+  }
+  const kick = () => ensurePlaying(vids[idx]);
+  addEventListener('touchstart', kick, { passive: true });
+  addEventListener('click', kick);
+  addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+  // last line of defence: a rejection we never saw, on a device we cannot test
+  setInterval(() => { if (inView) kick(); }, 1000);
+
+  function applyIdx(i) {
+    vids.forEach(v => {
+      const on = +v.dataset.i === i;
+      v.classList.toggle('on', on);
+      if (on) { v.currentTime = 0; ensurePlaying(v); }
+      else v.pause();
+    });
+    if (dev) dev.setScreenSource(vids[i]);
+    items.forEach(el => el.classList.toggle('on', +el.dataset.i === i));
+    dsets.forEach(el => el.classList.toggle('on', +el.dataset.i === i));
+    dots.forEach((d, k) => d.classList.toggle('on', k <= i));
+    retractChip(true);
+    chips.forEach(c => delete c.dataset.fired);
+    idx = i;
+    syncNav();
+    if (!seen.has(i)) { seen.add(i); track('feature_view', { i }); }
+  }
+
+  // one toss: lift, a full turn showing the real back, land on the next
+  // instrument. The screen swaps at 0.42, while the back is to camera.
+  // A tap during a turn used to be DROPPED. One toss is a second long, and on a
+  // phone you tap the arrow again well inside that -- the second tap did nothing
+  // and the spin read as broken (Luke, round 8). Remember the last one asked for
+  // and go there as soon as the current toss lands, so the arrows always owe you
+  // a move. The pending target also drives syncNav, or the arrow that WOULD work
+  // sits there disabled.
+  let pending = null, spinTo = null;
+  // where the NEXT tap should count from: the queued target if there is one,
+  // otherwise the instrument the current toss is flying to (idx does not update
+  // until halfway through it), otherwise where we actually are.
+  const aim = () => (pending !== null ? pending : (spinning && spinTo !== null ? spinTo : idx));
+  // left, pause, right, pause -- one timer, so the two can never drift apart
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let beat = 0;
+    setInterval(() => {
+      const btn = (beat++ % 2) ? nextB : prevB;
+      if (btn.disabled || !inView) return;
+      btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
+    }, 1250);
+  }
+  function goTo(i) {
+    i = Math.max(0, Math.min(N - 1, i));
+    if (spinning) { pending = (i === spinTo) ? null : i; syncNav(); return; }
+    if (i === idx) return;
+    if (!dev) { applyIdx(i); return; }
+    spinning = true; spinTo = i;
+    retractChip(true);
+    dev.spin({ dir: i > idx ? 1 : -1, duration: 1000, onHalfway: () => applyIdx(i) })
+       // the swap rides the device's frame loop, and a loop that never ticks
+       // (a backgrounded tab throttles rAF to nothing) would leave the arrow
+       // looking broken: land the instrument here if the toss never got to it
+       .then(() => {
+         spinning = false; spinTo = null;
+         if (idx !== i) applyIdx(i);
+         const next = pending; pending = null;
+         if (next !== null && next !== idx) goTo(next); else syncNav();
+       })
+       .catch(() => { spinning = false; spinTo = null; pending = null; applyIdx(i); });
+  }
+
+  // Where the chip STARTS (the real card on the phone's screen) and where it
+  // comes to rest. Both in .feat-dwrap's coordinates, because that is what the
+  // chip is positioned inside -- and .feat-dwrap is exactly the phone's body
+  // box, --dw wide by 2.092 of that tall, which is what makes this measurable.
+  const chipFrom = new WeakMap();
+  function placeChip(c) {
+    const db = dwrap.getBoundingClientRect();
+    if (!db.width) return null;
+    const num = (n, d) => { const v = parseFloat(getComputedStyle(c).getPropertyValue(n)); return isNaN(v) ? d : v; };
+
+    // the screen plane, inset from the body by the device's own bezel
+    // (device3d: SW = PW - 0.052, SH = PH - 0.052, in body-widths)
+    const screenW = db.width * (1 - 0.052);
+    const screenH = db.width * (2.092 - 0.052);
+    const srcW = num('--sw', 0.9) * screenW;
+    const srcH = num('--sh', 0.2) * screenH;
+    const srcCX = db.width / 2 + (num('--sx', 0.5) - 0.5) * screenW;
+    const srcCY = db.height / 2 + (num('--sy', 0.5) - 0.5) * screenH;
+
+    const img = c.querySelector('img');
+    const aspect = (img && img.naturalWidth && img.naturalHeight)
+      ? img.naturalWidth / img.naturalHeight : srcW / Math.max(srcH, 1);
+    // How big the payoff WANTS to be, derived from the card it is lifted out of
+    // rather than from a constant. Fixed ceilings (360, then 460, then 400 when
+    // stacked) meant the chip was smaller than the card on the phone on every
+    // tablet and on a big screen, because the device changes size and the
+    // ceiling did not. 1.6x is the ratio Luke approved at 1440x820.
+    // The second clamp is physics: a chip asked for more than half its own
+    // pixel width goes soft on a retina screen.
+    const want = Math.min(srcW * 1.6, img.naturalWidth / 2);
+
+    let restW, restLeft, restTop;
+    if (mode !== 'three') {
+      // Stacked (and two-column): the copy is not beside the device, so there
+      // is no column to draw into and the chip lifts into the band above the
+      // arrows. Round 11: this used to centre the IMAGE on --chipy, from a
+      // round-8 measurement taken before the notes existed. The note hangs
+      // below the picture, so the block ran on past the arrows and the note
+      // read straight through them (Luke's iPhone screenshots). Fit the whole
+      // BLOCK into the band and clear the arrows by a real margin, shrinking
+      // the same way the desktop branch does.
+      const sb = screen.getBoundingClientRect();
+      const navTop = nextB.getBoundingClientRect().top;
+      const top = sb.top + 10;
+      const avail = Math.max(120, navTop - 22 - top);
+      restW = Math.min(innerWidth * 0.86, want);
+      c.style.width = Math.round(restW) + 'px';
+      for (let i = 0; i < 4 && c.offsetHeight > avail; i++) {
+        restW = Math.max(170, restW * (avail / c.offsetHeight));
+        c.style.width = Math.round(restW) + 'px';
+      }
+      restLeft = db.width / 2 - restW / 2;
+      restTop = top + Math.max(0, (avail - c.offsetHeight) / 2) - db.top;
+    } else {
+      // The empty column under the copy, which is black on every instrument.
+      // Anchored to the TOP of that space and pushed right so its edge lines up
+      // with the copy's: centring it in the space and hanging it off the left
+      // margin put it low and far from the device it came out of (Luke, round
+      // 10). Narrower too, which brings it in closer.
+      const cb = copyEl.getBoundingClientRect(), sb = stage.getBoundingClientRect();
+      // clamp to the VIEWPORT, not just the stage: the stage can run past the
+      // fold depending on where the section is scrolled, and a payoff that
+      // lands below the fold has not been shown to anybody
+      // Round 11: on a 1440x820 window the note's last line sat level with the
+      // progress dots (Luke). 12px is not a gap, it is a near miss -- so the
+      // block starts a little higher and keeps a real margin underneath.
+      const top = cb.bottom + 12;
+      const avail = Math.max(90, Math.min(sb.bottom, innerHeight) - 44 - top);
+      // 360 was the ceiling the OLD sources could hold: a chip cut from a DPR-1
+      // still is ~716px across, so 360 CSS px is exactly 1:1 on a retina screen
+      // and anything wider softens. That also made the payoff barely larger
+      // than the card on the phone (~260px at this width), and smaller than it
+      // whenever the column forced a shrink. The chips are re-cut at 2x now
+      // (~1432px), so 460 is still inside the source and reads as genuinely
+      // lifted OUT of the device rather than traced off it. The cap stays tied
+      // to the copy width: a chip wider than its column would hang off the left
+      // edge into the arrow lane.
+      restW = Math.min(cb.width, want);
+      c.style.width = Math.round(restW) + 'px';
+      // The note is inside the chip, so the block is taller than the picture:
+      // measure it rather than deriving height from the image alone. Measure
+      // again after each shrink, too -- the note REFLOWS onto more lines as the
+      // block narrows, so one proportional pass under-shrinks a chip whose note
+      // gains a line, which is exactly how the tallest one still reached the
+      // dots.
+      for (let i = 0; i < 4 && c.offsetHeight > avail; i++) {
+        restW = Math.max(200, restW * (avail / c.offsetHeight));
+        c.style.width = Math.round(restW) + 'px';
+      }
+      restLeft = cb.right - restW - db.left;      // right edges aligned, nearer the phone
+      restTop = top - db.top;                     // sits directly under the copy
+    }
+    const imgH = restW / aspect;
+
+    c.style.width = Math.round(restW) + 'px';
+    // Seat the PICTURE on the card, not the whole block: the note hangs below
+    // the image, so aligning the block's centre would push the picture up off
+    // the card it is supposed to be sitting on.
+    const scale = srcW / restW;
+    const from = `translate(${(srcCX - srcW / 2).toFixed(1)}px, ${(srcCY - (imgH * scale) / 2).toFixed(1)}px) scale(${scale.toFixed(4)})`;
+    const to = `translate(${restLeft.toFixed(1)}px, ${restTop.toFixed(1)}px) scale(1)`;
+    chipFrom.set(c, from);
+    return { from, to };
+  }
+
+  function popChip(c) {
+    vids[idx].pause();
+    if (dev) dev.setDim(true); else flatbox.classList.add('dim');
+    stage.classList.add('chipout');
+    const g = placeChip(c);
+    if (g) {
+      // seat it ON the card with no transition, then let it be drawn out
+      c.style.transition = 'none';
+      c.style.transform = g.from;
+      void c.offsetWidth;
+      c.style.transition = '';
+      c.style.transform = g.to;
+    }
+    c.classList.add('out'); outChip = c;
+  }
+  function retractChip(snap) {
+    clearTimeout(chipTimer); chipTimer = null;
+    if (outChip) {
+      const c = outChip; outChip = null;
+      if (snap === true) { c.style.transition = 'none'; requestAnimationFrame(() => { c.style.transition = ''; }); }
+      // goes back the way it came, into the card it was pulled from
+      const from = chipFrom.get(c);
+      if (from) c.style.transform = from;
+      c.classList.remove('out');
+    }
+    stage.classList.remove('chipout');
+    if (dev) dev.setDim(false); else flatbox.classList.remove('dim');
+    const v = vids[idx];
+    ensurePlaying(vids[idx]);
+  }
+
+  // Luke picked pops-DURING (15 Aug): each payoff fires at its own beat in the
+  // film, the film pauses behind it, and it re-seats after the hold.
+  function scanInline(v) {
+    if (outChip) return;
+    const t = v.currentTime;
+    for (const c of chips) {
+      if (+c.dataset.i !== idx || c.dataset.fired) continue;
+      const t0 = +c.dataset.t0;
+      if (t >= t0 && t < t0 + 0.6) {
+        c.dataset.fired = 1;
+        popChip(c);
+        chipTimer = setTimeout(retractChip, holdFor(c));
+        break;
+      }
+    }
+  }
+  vids.forEach(v => {
+    let lastT = 0;
+    v.addEventListener('timeupdate', () => {
+      if (+v.dataset.i !== idx || reduced || v.paused || spinning) return;
+      const t = v.currentTime;
+      if (t < lastT - 1) chips.forEach(c => { if (+c.dataset.i === idx) delete c.dataset.fired; });
+      lastT = t;
+      scanInline(v);
+    });
+    // The 3D device paints the video as a TEXTURE, so the poster background
+    // behind the element cannot save it: a film that never decodes gives the
+    // device an empty texture and the phone goes black. Drop the whole section
+    // to the flat shell instead, where the element itself is on screen and its
+    // poster shows through. Reasons this fires in the wild: a blocked network,
+    // a codec the browser will not take, and iOS evicting a decoder under
+    // memory pressure -- none of which a deploy-time asset check can prevent.
+    // dev is cleared as well as hidden: every arrow, chip and dim path branches
+    // on it, and leaving it set would spin a canvas nobody can see, so the
+    // arrows would stop appearing to do anything.
+    v.addEventListener('error', () => { if (dev) { dev = null; goFlat(); } }, { once: true });
+    // a looping <video> swallows its last timeupdate, so the end of the film is
+    // driven off 'ended' — which also leaves it on the frame the payoff came from
+    v.addEventListener('ended', () => {
+      if (+v.dataset.i !== idx || spinning) return;
+      chips.forEach(c => { if (+c.dataset.i === idx) delete c.dataset.fired; });
+      v.currentTime = 0;
+      ensurePlaying(v);
+    });
+  });
+
+  function syncNav() {
+    const at = aim();                              // where the next tap moves FROM
+    prevB.disabled = at === 0; nextB.disabled = at === N - 1;
+  }
+  prevB.addEventListener('click', () => goTo(aim() - 1));
+  nextB.addEventListener('click', () => goTo(aim() + 1));
+
+  // The device is as big as the screen actually allows. Measuring beats a
+  // hand-picked budget: the heading wraps differently at every width, and one
+  // toss needs 2.507 body-widths of room (device3d VSPACE), so a budget that is
+  // 60px optimistic puts the phone through the heading.
+  // .feat-screen IS the budget on both layouts: a bare 100svh with the heading
+  // hoisted above it and scrolling away. Measuring the box itself means the two
+  // layouts share one formula.
+  const screen = section.querySelector('.feat-screen');
+  const prog = section.querySelector('.feat-foot');
+  const hdr = document.querySelector('header');
+  // vertical room one toss needs, in body-widths. device3d owns the number;
+  // this is the conservative stand-in until the module lands.
+  let vspace = 2.507;
+  // The copy slot is a fixed height so the device never shifts as you step
+  // through the six instruments. A hand-picked 10.5em was wrong at both ends
+  // though: it OVERFLOWED the longest instrument on a 375px phone (181px of
+  // copy in a 168px box) and wasted 10px on a 390px one. Measure the tallest
+  // instrument at the actual width instead, and hand the difference to the
+  // device. Stacked only -- desktop's copy sits beside the device and does not
+  // compete with it for room.
+  const copySlot = section.querySelector('.feat-copy');
+  function sizeCopySlot() {
+    copySlot.style.height = 'auto';
+    let tallest = 0;
+    for (const el of items) {
+      const c = el.cloneNode(true);
+      c.style.cssText = 'position:static;opacity:1;transform:none;visibility:hidden';
+      copySlot.appendChild(c);
+      tallest = Math.max(tallest, Math.ceil(c.getBoundingClientRect().height));
+      c.remove();
+    }
+    copySlot.style.height = tallest + 'px';
+  }
+
+  function fit() {
+    applyLayout();                       // one source; CSS reads the same class
+    const stacked = isStacked();
+    if (stacked) sizeCopySlot(); else copySlot.style.height = '';
+    // The header steps aside on a phone while this screen is framed (see the
+    // .stand-aside observer below), so the device gets the whole 100svh and
+    // does not have to reserve a bar's height it will never collide with.
+    const clear = 0;
+    screen.style.paddingTop = clear + 'px';
+    let room = screen.clientHeight - clear - prog.offsetHeight;
+    const cap = section.querySelector('.devcap').offsetHeight;                   // 0 when hidden
+    if (stacked) room -= section.querySelector('.feat-copy').offsetHeight + 12    // the row-gap
+                       + (cap ? cap + 10 : 0);                                    // caption, in flow here
+    // desktop stops at the site's one phone width, so this device is the same
+    // size as the two in bands II and III rather than merely as big as it fits
+    const pw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pw')) || 300;
+    // Round 11: the desktop width was a hard --pw (300px) at every size, which
+    // is why the phone was identical on a 1366 laptop and a 3440 ultrawide and
+    // the space either side of it read as a void. Grow it with the viewport,
+    // never below the approved 300 and never past the clip's own 460. The
+    // height budget below still governs -- min(width budget, height budget).
+    const wide = stacked ? innerWidth * 0.56
+                         : Math.max(pw, Math.min(innerWidth * 0.19, 460));
+    // VSPACE budgets the arc on BOTH sides because the desktop stage centres the
+    // device in it. The toss only travels up, so stacked -- where the stage is
+    // start-aligned and we pad the arc in explicitly -- the device only has to
+    // pay for one side of it. That is ~8% of the phone back on a 664px screen.
+    const arc = (vspace - 2.092) / 2;
+    const budget = stacked ? 2.092 + arc : vspace;
+    const dw = Math.max(96, Math.min(wide, Math.floor(room / budget)));
+    section.style.setProperty('--dw', dw + 'px');
+    stage.style.paddingTop = stacked ? Math.ceil(arc * dw) + 'px' : '';
+    if (dev) dev.resize(dwrap.getBoundingClientRect().width);
+    // The payoff sits in the band between the header and the arrows, anchored to
+    // the DEVICE box so it scrolls with the phone instead of riding the viewport.
+    // Measured, not guessed: both edges of that band move with the device size.
+    if (stacked) {
+      const band = (screen.getBoundingClientRect().top + clear
+                    + nextB.getBoundingClientRect().top) / 2;
+      section.style.setProperty('--chipy',
+        Math.round(band - dwrap.getBoundingClientRect().top) + 'px');
+    } else section.style.removeProperty('--chipy');
+  }
+  fit();
+  addEventListener('resize', fit);
+  if (document.fonts) document.fonts.ready.then(fit);   // the heading rewraps once Archivo lands
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    // a VideoTexture uploads nothing until the element has decoded a frame, so
+    // an instrument you have not reached yet would render BLACK: prime them all
+    // Priming all six at once put ~10MB on the wire before the FIRST one could
+    // play, which is why the opening instrument stalled on a phone and the spin
+    // read as broken. Prime the one you are looking at; the rest queue behind it
+    // once it can play, so they are ready by the time an arrow is pressed.
+    const prime = v => {
+      if (v.dataset.primed) return;
+      v.dataset.primed = '1';
+      v.preload = 'auto';
+      v.addEventListener('loadeddata', () => {
+        if (v.paused && v.currentTime < 0.05) v.currentTime = 0.12;
+      }, { once: true });
+      v.load();
+    };
+    const primeRest = () => vids.forEach((v, i) => { if (i !== idx) setTimeout(() => prime(v), i * 400); });
+    prime(vids[idx]);
+    if (vids[idx].readyState >= 3) primeRest();
+    else vids[idx].addEventListener('canplay', primeRest, { once: true });
+    setTimeout(primeRest, 6000);   // never leave the others unprimed
+    if (!LV_GL || reduced) { goFlat(); applyIdx(0); return; }
+    loadDeviceModule().then(({ createDevice, supported, VSPACE }) => {
+      if (!supported()) { goFlat(); applyIdx(0); return; }
+      if (VSPACE) vspace = VSPACE;             // one source of truth for the arc
+      dev = createDevice({ mount: gl });
+      fit();                                   // sizes the box AND the renderer
+      applyIdx(0);
+    }).catch(() => { goFlat(); applyIdx(0); });
+  }
+  new IntersectionObserver((entries, o) => {
+    if (entries.some(e => e.isIntersecting)) { boot(); o.disconnect(); }
+  }, { rootMargin: '600px' }).observe(section);
+
+  // play only while the section is on screen. Observe the SECTION, never the
+  // 1px source videos or the transformed canvas.
+  new IntersectionObserver(([e]) => {
+    inView = e.isIntersecting;
+    if (dev) dev.setActive(inView);
+    const v = vids[idx];
+    if (!v) return;
+    if (inView) ensurePlaying(v);
+    else v.pause();
+  }, { threshold: 0.15 }).observe(section);
+
+  // The header stands aside on a phone once this screen is most of the way in,
+  // which is well before the device's top edge could ever reach it: at 55%
+  // visible the phone's top is still ~330px down the viewport, and it only
+  // approaches the bar when the screen is fully framed.
+  new IntersectionObserver(([e]) => {
+    hdr.classList.toggle('stand-aside', isStacked() && e.intersectionRatio >= 0.55);
+  }, { threshold: [0, 0.55, 0.9, 1] }).observe(screen);
+  addEventListener('resize', () => {
+    if (!isStacked()) hdr.classList.remove('stand-aside');
+  });
+
+  applyIdx(0);   // copy, details and dots are right before anything has loaded
+})();
+
+/* ---------- bands II + III: the same device, held still, no spin ---------- */
+(() => {
+  const wraps = [...document.querySelectorAll('.phone-wrap[data-dev]')];
+  if (!wraps.length || !LV_GL) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;  // flat phone stays
+  const devices = [];
+  let booted = false;
+  function boot() {
+    if (booted) return;
+    booted = true;
+    loadDeviceModule().then(({ createDevice, supported }) => {
+      if (!supported()) return;
+      wraps.forEach(wrap => {
+        const video = wrap.querySelector('video');
+        const box = wrap.querySelector('.band-dev');
+        const shell = video.parentElement;   // the .screen it is lifted out of
+        const src = document.createElement('div');
+        src.className = 'vsrc';
+        box.appendChild(src);
+        src.appendChild(video);            // out of the shell, never display:none
+        wrap.classList.add('dev3d');
+        // The device paints the film as a TEXTURE, so a film that never decodes
+        // leaves a black rectangle where the phone is -- which is exactly what
+        // band III looked like in production when its file went missing, and
+        // what iOS gives you when it evicts a decoder. Put the video back in the
+        // flat shell, where the element is on screen and the poster painted
+        // behind it (see the poster-background block at the top) shows through.
+        video.addEventListener('error', () => {
+          wrap.classList.remove('dev3d');
+          shell.appendChild(video);
+          try { dev.setActive(false); } catch (e) {}
+        }, { once: true });
+        const dev = createDevice({ mount: box.querySelector('.band-gl') });
+        dev.resize(box.getBoundingClientRect().width);
+        dev.setScreenSource(video);
+        devices.push({ dev, box });
+        // prime it, or a band you have not reached yet arrives dead-black
+        video.preload = 'auto';
+        const prime = () => { if (video.paused && video.currentTime < 0.05) video.currentTime = 0.12; };
+        video.addEventListener('loadeddata', prime, { once: true });
+        video.load();
+      });
+      addEventListener('resize', () => devices.forEach(d => d.dev.resize(d.box.getBoundingClientRect().width)));
+      // render only the band you are actually looking at
+      const seen = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          const d = devices.find(x => x.box === e.target);
+          if (d) d.dev.setActive(e.isIntersecting);
+        });
+      }, { threshold: 0.05 });
+      devices.forEach(d => seen.observe(d.box));
+    }).catch(() => {});
+  }
+  const io = new IntersectionObserver((entries, o) => {
+    if (entries.some(e => e.isIntersecting)) { boot(); o.disconnect(); }
+  }, { rootMargin: '400px' });
+  wraps.forEach(w => io.observe(w));
+})();
+
+
+/* ---------- band demo videos: play muted while in view ---------- */
+(() => {
+  const vids = [...document.querySelectorAll('video[data-autoplay]')];
+  if (!vids.length) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) return;
+  // observe the WRAP, never the video: the video's own box is transformed (and
+  // once the 3D device takes a band over it is a 1px source off in .vsrc),
+  // which would shrink its ratio to nothing and pause playback forever
+  const byHost = new Map();
+  const io = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      const v = byHost.get(en.target);
+      if (en.intersectionRatio >= 0.35) v.play().catch(() => {});
+      else v.pause();
+    }
+  }, { threshold: [0, 0.35] });
+  vids.forEach(v => {
+    const host = v.closest('.phone-wrap') || v.closest('.screen') || v;
+    byHost.set(host, v);
+    io.observe(host);
+  });
+})();
+
+/* ---------- testimonial videos: play muted in view, tap for sound ---------- */
+/* Round 12. A muted <video> on iOS is not just a quiet one. Safari 14+ drives a
+   muted stream with an internal "trick play" engine and stands up no audio
+   renderer at all, so unmuting mid-stream has to tear that down and bring the
+   real pipeline up at whatever position the clock had already reached. That one
+   transition produced BOTH of Luke's faults: sometimes no audio arrives, and
+   when it does it lands at a different offset from the picture and never
+   resynchronises -- because the transition is internally a seek-and-restart,
+   and since iOS 18 a post-seek restart is itself known to part the two clocks
+   by seconds. (Sources: WebKit's iOS video policies; hls.js/jwplayer on muted
+   trick play; Apple's own iOS 26 post-seek desync reports.)
+
+   So do not make that transition. On tap: unmute FIRST and synchronously --
+   WebKit pauses any element that becomes unmuted without a user gesture, so it
+   has to happen inside the handler -- then load() the element from scratch and
+   play from the top. It never runs trick play while audible and it never seeks,
+   so there is no offset to inherit. Starting from the top is also the better
+   answer to the tap: you asked to hear this person, you get them from the
+   beginning rather than from wherever the silent loop had drifted to.
+
+   `loop` comes off while audible for the same reason -- a wrap is an internal
+   seek, the last place the clocks could part -- and the tile hands itself back
+   to the silent ambient loop when the clip ends. */
+/* Two rows, not one. On a desktop the row plays itself and a tap chooses whose
+   voice you hear -- approved, unchanged, and left alone below. On a phone it
+   plays nothing until asked: one tap starts one clip WITH its sound, and starts
+   it from a PAUSED element, which is the one unmute path on iOS that never goes
+   near the trick-play engine described above. Luke's instinct removed the bug's
+   surface rather than working around it. */
+(() => {
+  const voices = [...document.querySelectorAll('.voice')];
+  if (!voices.length) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const vids = voices.map(v => v.querySelector('video'));
+  // ** Duplicated from THE TOUCH ROW query in the CSS above, deliberately: an
+  // iPhone in landscape is 844px wide, so a width-only test would hand the
+  // device that has the bug back to the desktop path. Move one, move the other.
+  const TOUCH = matchMedia('(max-width: 780px), (pointer: coarse) and (max-width: 1180px)');
+
+  const chip = (i, audible) => {
+    const btn = voices[i].querySelector('.v-sound');
+    btn.textContent = audible ? 'Sound off' : 'Sound on';
+    btn.setAttribute('aria-label', audible ? 'Turn sound off' : 'Turn sound on');
+  };
+  // The transport follows the element's real play/pause events rather than
+  // being set optimistically at the tap, so a rejected play() can never leave a
+  // pause icon over a still picture.
+  const transport = (i, playing) => {
+    voices[i].classList.toggle('playing', playing);
+    voices[i].querySelector('.v-play')
+      .setAttribute('aria-label', playing ? 'Pause this testimonial' : 'Play this testimonial');
+  };
+  vids.forEach((vid, i) => {
+    vid.addEventListener('play', () => transport(i, true));
+    vid.addEventListener('pause', () => transport(i, false));
+  });
+
+  // desktop: back to the approved ambient state, silent and looping
+  const silence = (i) => {
+    const vid = vids[i];
+    if (vid.muted && vid.loop) return;
+    vid.muted = true; vid.loop = true; chip(i, false);
+  };
+  // mobile: fully stopped, poster showing, transport back to play
+  const stop = (i) => {
+    const vid = vids[i];
+    vid.pause(); vid.muted = true; vid.loop = true;
+  };
+
+  const io = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      const i = voices.indexOf(en.target);
+      if (TOUCH.matches) {
+        // Only once the tile is COMPLETELY gone. The 0.4 threshold the desktop
+        // row uses is exactly what silenced a tile under ordinary scroll
+        // momentum in round 11, and on a phone manual now means manual.
+        if (en.intersectionRatio === 0 && !vids[i].paused) stop(i);
+      } else if (!reduced) {
+        if (en.intersectionRatio >= 0.4) vids[i].play().catch(() => {});
+        else { vids[i].pause(); silence(i); }
+      }
+    }
+  }, { threshold: [0, 0.4] });
+  voices.forEach(v => io.observe(v));
+
+  // Seek back to the top while still UNMUTED (a muted seek is the broken one),
+  // then hand the tile back: to its silent loop on desktop, to its poster and
+  // its play button on a phone.
+  vids.forEach((vid, i) => vid.addEventListener('ended', () => {
+    vid.currentTime = 0;
+    if (TOUCH.matches) { vid.muted = true; vid.loop = true; }
+    else { silence(i); vid.play().catch(() => {}); }
+  }));
+
+  voices.forEach((v, i) => v.addEventListener('click', () => {
+    const vid = vids[i];
+
+    if (TOUCH.matches) {
+      const wasPlaying = !vid.paused;
+      vids.forEach((o, j) => { if (j !== i) stop(j); });   // one at a time
+      if (wasPlaying) { vid.pause(); return; }
+      vid.muted = false;      // unmuting a PAUSED element: no trick play to leave
+      vid.loop = false;
+      vid.play().catch(() => {});
+      track('testimonial_play');
+      return;
+    }
+
+    const wasMuted = vid.muted;
+    vids.forEach((o, j) => { if (j !== i) { o.muted = true; o.loop = true; chip(j, false); } });
+    if (!wasMuted) { silence(i); return; }   // second tap: back to ambient
+    vid.muted = false;                        // must be inside the gesture
+    vid.loop = false;
+    chip(i, true);
+    vid.load();                               // no trick play, no seek, no offset
+    vid.play().catch(() => {});
+    track('testimonial_sound_on');
+  }));
+
+  // Crossing the breakpoint with a browser resize leaves the row in the other
+  // mode's state, so reset it and re-observe to get fresh ratios.
+  TOUCH.addEventListener('change', () => {
+    vids.forEach((vid, i) => { vid.pause(); vid.muted = true; vid.loop = true; chip(i, false); });
+    voices.forEach(v => { io.unobserve(v); io.observe(v); });
+  });
+})();
+
+/* ---------- header + logotype flicker ---------- */
+(() => {
+  const hdr = document.querySelector('header');
+  const onScroll = () => {
+    hdr.classList.toggle('scrolled', scrollY > 24);
+    hdr.classList.toggle('past-hero', scrollY > innerHeight * 0.85);
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const logo = document.querySelector('.logotype');
+  logo.classList.add('zaps');
+  const uvs = logo.querySelectorAll('.uv');
+  const scatter = () => scatterDashes(logo);
+  let busy = false;
+  setInterval(() => {
+    if (busy || Math.random() > 0.34) return;
+    busy = true;
+    scatter();
+    logo.classList.add('burst', 'hold');
+    uvs.forEach(s => s.textContent = 'V');
+    if (logo.__sliceBurst) logo.__sliceBurst();
+    setTimeout(() => logo.classList.remove('burst'), 140 + Math.random() * 120);
+    const holdFor = 520 + Math.random() * 380;
+    setTimeout(() => { scatter(); logo.classList.add('burst'); }, holdFor);
+    setTimeout(() => {
+      logo.classList.remove('burst', 'hold');
+      uvs.forEach(s => s.textContent = 'U');
+      busy = false;
+    }, holdFor + 130 + Math.random() * 120);
+  }, 2600);
+})();
+
+/* ---------- shared transmission state ---------- */
+const XMIT = { velocity: 0 };
+(() => {
+  let last = scrollY, lastT = performance.now();
+  const tick = now => {
+    const dy = Math.abs(scrollY - last), dt = Math.max(1, now - lastT);
+    const v = Math.min(1, (dy / dt) / 3.5);
+    XMIT.velocity += (v - XMIT.velocity) * (v > XMIT.velocity ? 0.4 : 0.06);
+    last = scrollY; lastT = now;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+})();
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- shared dash scatter + header zaps ---------- */
+const DASH_COLORS = ['#34D3A4', '#2EA88A', '#E070D8', '#C13BB0', '#EDEAE1'];
+function scatterDashes(el) {
+  el.querySelectorAll('.dash').forEach(dd => {
+    dd.style.top = (-12 + Math.random() * 115) + '%';
+    dd.style.left = (-12 + Math.random() * 65) + '%';
+    dd.style.width = (16 + Math.random() * 55) + '%';
+    dd.style.height = (1 + Math.random() * 2.2) + 'px';
+    dd.style.background = DASH_COLORS[Math.random() * DASH_COLORS.length | 0];
+  });
+}
+if (!REDUCED) {
+  const targets = [...document.querySelectorAll('.zh, .zw')];
+  targets.forEach(el => {
+    el.classList.add('zaps');
+    for (let i = 0; i < 6; i++) {
+      const d = document.createElement('i');
+      d.className = 'dash';
+      d.setAttribute('aria-hidden', 'true');
+      el.appendChild(d);
+    }
+  });
+  setInterval(() => {
+    const vis = targets.filter(el => {
+      const r = el.getBoundingClientRect();
+      return r.bottom > 0 && r.top < innerHeight;
+    });
+    const el = vis[Math.random() * vis.length | 0];
+    if (!el || Math.random() > 0.45 || el.classList.contains('burst')) return;
+    scatterDashes(el);
+    el.style.setProperty('--zx', ((Math.random() - .5) * 6 | 0) + 'px');
+    el.classList.add('burst', 'zapped');
+    if (el.__sliceBurst) el.__sliceBurst();
+    setTimeout(() => el.classList.remove('burst', 'zapped'), 190 + Math.random() * 220);
+    if (Math.random() < 0.45) setTimeout(() => {
+      scatterDashes(el);
+      el.classList.add('burst', 'zapped');
+      setTimeout(() => el.classList.remove('burst', 'zapped'), 130 + Math.random() * 140);
+    }, 360 + Math.random() * 180);
+  }, 1300);
+}
+/* ---------- slice glitch (Colosseum-style band displacement) ---------- */
+function makeSlicer(host, core, getText) {
+  let live = [], busy = false;
+  const clear = () => { live.forEach(s => s.remove()); live = []; core.style.visibility = ''; };
+  const scatter = () => {
+    clear();
+    core.style.visibility = 'hidden';
+    const cuts = [0, ...Array.from({ length: 4 + (Math.random() * 3 | 0) }, () => Math.random() * 100).sort((a, b) => a - b), 100];
+    for (let i = 0; i < cuts.length - 1; i++) {
+      const s = document.createElement('span');
+      s.className = 'slice';
+      s.setAttribute('aria-hidden', 'true');
+      s.textContent = getText();
+      s.style.clipPath = `inset(${cuts[i].toFixed(1)}% 0 ${(100 - cuts[i + 1]).toFixed(1)}% 0)`;
+      const big = Math.random() < 0.3;
+      const dx = (Math.random() - .5) * (big ? 1.1 : 0.12);
+      const dy = Math.random() < 0.25 ? (Math.random() - .5) * 0.06 : 0;
+      s.style.transform = `translate(${dx.toFixed(3)}em, ${dy.toFixed(3)}em)`;
+      if (Math.random() < 0.18) s.style.opacity = (0.4 + Math.random() * 0.4).toFixed(2);
+      host.appendChild(s);
+      live.push(s);
+    }
+  };
+  return () => {
+    if (busy || REDUCED) return;
+    busy = true;
+    let steps = 2 + (Math.random() * 3 | 0);
+    (function step() {
+      scatter();
+      if (steps-- > 0) setTimeout(step, 60 + Math.random() * 70);
+      else setTimeout(() => { clear(); busy = false; }, 70 + Math.random() * 60);
+    })();
+  };
+}
+if (!REDUCED) {
+  // hero word: its own cadence
+  const zw = document.querySelector('.zw');
+  if (zw && zw.childNodes.length) {
+    const word = zw.childNodes[0].nodeValue;
+    const core = document.createElement('span');
+    core.textContent = word;
+    zw.replaceChild(core, zw.childNodes[0]);
+    const burst = makeSlicer(zw, core, () => word);
+    (function loop() { setTimeout(() => { burst(); loop(); }, 2600 + Math.random() * 3800); })();
+  }
+  // key words inside headings: fire together with the heading's zap
+  document.querySelectorAll('.zg').forEach(g => {
+    const word = g.textContent;
+    const core = document.createElement('span');
+    core.textContent = word;
+    g.textContent = '';
+    g.appendChild(core);
+    const heading = g.closest('.zh') || g;
+    heading.__sliceBurst = makeSlicer(g, core, () => word);
+  });
+  // logotype: fires with the LVDVS flick (reads the live letters, so it slices LVDVS mid-hold)
+  const lgLogo = document.querySelector('.logotype');
+  const lgCore = lgLogo && lgLogo.querySelector('.lg-core');
+  if (lgCore) lgLogo.__sliceBurst = makeSlicer(lgLogo, lgCore, () => lgCore.textContent);
+}
+
+const TONE = l => { const t = Math.min(1, l * 1.45); return [84 + t * 122, 78 + t * 116, 108 + t * 128]; };
+const GLITCH_TEAL = 'rgba(52,211,164,0.55)', GLITCH_PINK = 'rgba(224,112,216,0.5)';
+const STREAK_COLORS = ['rgba(52,211,164,0.95)', 'rgba(46,168,138,0.9)', 'rgba(224,112,216,0.9)', 'rgba(193,59,176,0.9)', 'rgba(237,234,225,0.85)'];
+function newCluster(W, H, d, now) {
+  const cy = Math.random() * H;
+  const segs = [];
+  const n = 5 + (Math.random() * 6 | 0);
+  for (let i = 0; i < n; i++) {
+    segs.push({
+      x: Math.random() * W * 0.9 - W * 0.1,
+      y: cy + (Math.random() - .5) * 32 * d,
+      w: (30 + Math.random() * 300) * d,
+      h: (1.2 + Math.random() * 2.2) * d,
+      c: STREAK_COLORS[Math.random() * STREAK_COLORS.length | 0],
+    });
+  }
+  return { segs, until: now + 260 + Math.random() * 520 };
+}
+function drawCluster(ctx, cl) { for (const s of cl.segs) { ctx.fillStyle = s.c; ctx.fillRect(s.x, s.y, s.w, s.h); } }
+
+/* ---------- scanline builder (shared) ---------- */
+function buildScan(source, W, H, spacing, sw = 240, splitDelta = Infinity, gain = 1) {
+  const sh = Math.round(sw * (source.height / source.width));
+  const s = document.createElement('canvas'); s.width = sw; s.height = sh;
+  const sc = s.getContext('2d', { willReadFrequently: true });
+  sc.drawImage(source, 0, 0, sw, sh);
+  const px = sc.getImageData(0, 0, sw, sh).data;
+  const out = document.createElement('canvas'); out.width = W; out.height = H;
+  const bc = out.getContext('2d');
+  const rows = Math.floor(H / spacing), xScale = W / sw, lineH = Math.max(1, Math.round(spacing * 0.42));
+  for (let r = 0; r < rows; r++) {
+    const sy = Math.min(sh - 1, Math.round((r / rows) * sh));
+    let run = null;
+    for (let x = 0; x <= sw; x++) {
+      let l = 0;
+      if (x < sw) { const i = (sy * sw + x) * 4; l = Math.min(1, gain * (px[i] * .299 + px[i+1] * .587 + px[i+2] * .114) / 255); }
+      const flush = () => {
+        const avg = run.sum / run.n, [cr, cg, cb] = TONE(avg);
+        bc.fillStyle = `rgba(${cr|0},${cg|0},${cb|0},${Math.min(1, .25 + avg * 1.15)})`;
+        bc.fillRect(run.x0 * xScale, r * spacing, (x - run.x0) * xScale, lineH);
+        run = null;
+      };
+      if (l > 0.055) {
+        if (run && Math.abs(l - run.sum / run.n) > splitDelta) flush();
+        if (!run) run = { x0: x, sum: 0, n: 0 };
+        run.sum += l; run.n++;
+      } else if (run) flush();
+    }
+  }
+  return out;
+}
+function tinted(src, color) {
+  const t = document.createElement('canvas'); t.width = src.width; t.height = src.height;
+  const tc = t.getContext('2d');
+  tc.drawImage(src, 0, 0);
+  tc.globalCompositeOperation = 'source-in';
+  tc.fillStyle = color; tc.fillRect(0, 0, t.width, t.height);
+  return t;
+}
+
+/* ---------- live transmission statues ---------- */
+function transmission(canvas, src, opts = {}) {
+  const calm = !!opts.calm;
+  const splitDelta = opts.splitDelta ?? Infinity;
+  const ctx = canvas.getContext('2d');
+  const img = new Image(); img.src = src;
+  const cssReady = document.fonts ? document.fonts.ready : Promise.resolve();
+  Promise.all([img.decode(), cssReady]).then(() => {
+    const start = () => { if (canvas.getBoundingClientRect().width < 10) return requestAnimationFrame(start); init(); };
+    start();
+  });
+  function init() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    let W, H, base, cyan, magenta;
+    const build = () => {
+      const r = canvas.getBoundingClientRect();
+      W = Math.round(r.width * dpr); H = Math.round(r.height * dpr);
+      canvas.width = W; canvas.height = H;
+      base = buildScan(img, W, H, Math.max(3, Math.round(3.2 * dpr)), opts.sw ?? 240, splitDelta, opts.gain ?? 1);
+      cyan = tinted(base, GLITCH_TEAL);
+      magenta = tinted(base, GLITCH_PINK);
+    };
+    build();
+    addEventListener('resize', () => { build(); if (REDUCED) still(); });
+    const still = () => { ctx.clearRect(0, 0, W, H); ctx.drawImage(base, 0, 0); };
+    if (REDUCED) return still();
+    let burst = null, next = performance.now() + 1600;
+    let cluster = null, nextCluster = performance.now() + 1500;
+    (function frame(now) {
+      const vr = canvas.getBoundingClientRect();
+      if (vr.bottom < -60 || vr.top > innerHeight + 60) return requestAnimationFrame(frame);
+      const v = XMIT.velocity;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = (calm ? 0.972 + Math.random() * 0.028 : 0.93 + Math.random() * 0.07) - v * 0.08;
+      ctx.drawImage(base, 0, 0);
+      ctx.globalAlpha = 1;
+      const jitters = calm ? Math.round(v * 3) : 4 + Math.round(v * 9);
+      for (let i = 0; i < jitters; i++) {
+        const y = Math.random() * H, h = (1 + Math.random() * 2) * dpr;
+        const dx = (Math.random() - .5) * (6 + v * 26) * dpr * (calm ? 0.4 : 1);
+        ctx.clearRect(0, y, W, h);
+        ctx.drawImage(base, 0, y, W, h, dx, y, W, h);
+        if (Math.random() < 0.35) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(cyan, 0, y, W, h, dx - 2 * dpr, y, W, h);
+          ctx.drawImage(magenta, 0, y, W, h, dx + 2 * dpr, y, W, h);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      }
+      if (Math.random() < (calm ? 0.03 : 0.10) + v * 0.25) {
+        const y = Math.random() * H, h = (1 + Math.random()) * dpr;
+        const dx = (Math.random() - .5) * 50 * dpr;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(Math.random() < .5 ? cyan : magenta, 0, y, W, h, dx, y, W, h);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      if (!burst && (now > next || v > 0.55)) {
+        burst = { until: now + 240 + Math.random() * 320, bands: Array.from({ length: 4 + (Math.random() * 5 | 0) }, () => ({ y: Math.random() * H, h: (2 + Math.random() * 13) * dpr, dx: (Math.random() - .5) * (90 + v * 120) * dpr })) };
+        next = now + (calm ? 4200 + Math.random() * 5600 : 1100 + Math.random() * 2400);
+      }
+      if (burst) {
+        for (const b of burst.bands) {
+          ctx.clearRect(0, b.y, W, b.h);
+          ctx.drawImage(base, 0, b.y, W, b.h, b.dx, b.y, W, b.h);
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(cyan, 0, b.y, W, b.h, b.dx - 4 * dpr, b.y, W, b.h);
+          ctx.drawImage(magenta, 0, b.y, W, b.h, b.dx + 4 * dpr, b.y, W, b.h);
+          ctx.globalCompositeOperation = 'source-over';
+          if (Math.random() < .5) b.dx = (Math.random() - .5) * 90 * dpr;
+        }
+        if (now > burst.until) burst = null;
+      }
+      if (!cluster && (now > nextCluster || (burst && Math.random() < 0.04))) {
+        cluster = newCluster(W, H, dpr, now);
+        nextCluster = now + (calm ? 7000 + Math.random() * 8000 : 2000 + Math.random() * 3500);
+      }
+      if (cluster) { drawCluster(ctx, cluster); if (now > cluster.until) cluster = null; }
+      requestAnimationFrame(frame);
+    })(performance.now());
+  }
+}
+/* hero loads immediately (right size for the device); everything below the
+   fold waits until it is near the viewport, decorative pillars are desktop only */
+/* the first device resolves out of the carved slab as you reach it */
+(() => {
+  const wrap = document.querySelector('.phone-wrap[data-morph]');
+  if (!wrap) return;
+  const cv = wrap.querySelector('.morph');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { wrap.classList.add('morphed'); return; }
+  // The BUST's family, not the hero's: splitDelta 0.09 is the fine-detail pass
+  // and the sample count has to clear the inscription, or the carving turns to
+  // mush and the slab reads off-brand against the two statues above it.
+  transmission(cv, 'assets/tablet-morph.webp', { splitDelta: 0.09, sw: 560, gain: 1.06 });
+  // The static that settles ON the phone once it takes over. It starts on the
+  // beat the device wins the cut (78% of the 860ms morph), NOT after the morph
+  // ends -- the 190ms of clean phone in between would read as a second, separate
+  // event rather than one signal still settling. Two seconds, decaying.
+  const MORPH_MS = 860, DEV_WINS = 0.78, FIZZ_MS = 2000;
+  function fizz(canvas) {
+    // Place it on the DEVICE. The phone renders centred in its GL canvas at
+    // exactly --pw wide by 2.092 of that tall (device3d PW/PH), so the canvas
+    // gives us the silhouette without guessing at the wrapper's centre.
+    // .band-dev IS the phone's silhouette: measured 300x628 against --pw 300 and
+    // device3d's PH of 2.092. Do NOT measure the GL canvas -- it is 1.70 x 2.90
+    // body-widths and overflows the device on every side, centred by a transform
+    // its offsets do not report, so it lands 105px out.
+    const host = wrap.querySelector('.band-dev');
+    if (!host) return;
+    // LAYOUT offsets, not getBoundingClientRect: this fires 671ms into the 860ms
+    // morph while morph-dev is still animating translateX on this very element,
+    // and a rect read now bakes that frame's offset in permanently (3px out).
+    let hx = 0, hy = 0;
+    for (let n = host; n && n !== wrap; n = n.offsetParent) { hx += n.offsetLeft; hy += n.offsetTop; }
+    const hw = host.offsetWidth, hh = host.offsetHeight;
+    if (!hw) return;
+    canvas.style.left = hx + 'px';
+    canvas.style.top = hy + 'px';
+    canvas.style.width = hw + 'px';
+    canvas.style.height = hh + 'px';
+    canvas.style.borderRadius = (hw * 0.168) + 'px';       // device3d PR
+
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const r = canvas.getBoundingClientRect();
+    if (!r.width) return;
+    const W = canvas.width = Math.round(r.width * dpr);
+    const H = canvas.height = Math.round(r.height * dpr);
+    const ctx = canvas.getContext('2d');
+    const t0 = performance.now();
+    canvas.style.opacity = '1';
+    (function step(now) {
+      const p = (now - t0) / FIZZ_MS;
+      if (p >= 1) { ctx.clearRect(0, 0, W, H); canvas.style.opacity = '0'; return; }
+      // heavy on the handover, gone well before the two seconds are up: a linear
+      // fade reads as a fog lifting, this reads as interference dying out
+      const k = Math.pow(1 - p, 2.4);
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0, n = 2 + Math.round(k * 9); i < n; i++) {
+        const y = Math.random() * H;
+        const h = (1 + Math.random() * 9) * dpr;
+        const a = k * (0.05 + Math.random() * 0.15);
+        ctx.fillStyle = `rgba(233,228,216,${a})`;
+        ctx.fillRect(0, y, W, h);
+        // the split rides the tear, same as the engine's own bands
+        if (Math.random() < 0.42) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = Math.random() < 0.5 ? `rgba(52,211,164,${a * 0.85})` : `rgba(224,112,216,${a * 0.85})`;
+          ctx.fillRect((Math.random() - 0.5) * 16 * dpr * k, y, W, h * 0.6);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      }
+      requestAnimationFrame(step);
+    })(performance.now());
+  }
+
+  // resolve once the device is properly on screen, not the instant it peeks in
+  new IntersectionObserver(([e], o) => {
+    if (e.intersectionRatio < 0.55) return;
+    o.disconnect();
+    // the slab HOLDS as a slab before it cuts: you should register it as a
+    // carved tablet first, or the glitch is over before you know what it was
+    setTimeout(() => {
+      wrap.classList.add('morphed');
+      setTimeout(() => fizz(wrap.querySelector('.morph-fizz')), MORPH_MS * DEV_WINS);
+    }, 1500);
+  }, { threshold: [0, 0.55, 1] }).observe(wrap);
+})();
+
+// Same family as the bust: the engine defaults skip the fine-detail split pass
+// entirely (splitDelta Infinity) and sample only 240 columns, which is what made
+// the hero read as flat slabs of line while the bust reads as a photograph made
+// of them. sw scales with how big the thing actually renders -- the hero draws
+// ~2x the bust's width on desktop, so equal density needs ~2x the columns.
+transmission(document.getElementById('statue'),
+  innerWidth <= 780 ? 'assets/statue-raw-m.webp' : 'assets/statue-raw.webp',
+  { splitDelta: 0.09, sw: innerWidth <= 780 ? 360 : 680, gain: 1.05 });
+(() => {
+  const lazy = [
+    // the bust, not the helmet-and-sword composite (Luke, 15 Aug)
+    ['fig-problem', 'assets/statue-aurelius.webp', { splitDelta: 0.09, sw: 340, gain: 1.05 }],
+  ];
+  if (innerWidth > 780) {
+    lazy.push(
+      ['beam', 'assets/beam.webp', { calm: true, splitDelta: 0.09, sw: 760 }],
+      ['pillar-l', 'assets/pillar.webp', { calm: true, splitDelta: 0.09, sw: 360 }],
+      ['pillar-r', 'assets/pillar.webp', { calm: true, splitDelta: 0.09, sw: 360 }]);
+  }
+  const io = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      const spec = lazy.find(l => l[0] === en.target.id);
+      if (spec && !en.target.dataset.lit) {
+        en.target.dataset.lit = '1';
+        transmission(en.target, spec[1], spec[2]);
+      }
+      io.unobserve(en.target);
+    }
+  }, { rootMargin: '600px' });
+  for (const [id] of lazy) { const el = document.getElementById(id); if (el) io.observe(el); }
+})();
+
+/* ---------- colosseum scrub ---------- */
+(() => {
+  const section = document.querySelector('.scrub');
+  const canvas = document.getElementById('colosseum');
+  const ctx = canvas.getContext('2d');
+  const captions = [...section.querySelectorAll('.caption, .lede')];
+  const FRAMES = +section.dataset.frames;
+  let mobile = innerWidth <= 780;
+  const dpr = () => Math.min(devicePixelRatio || 1, 2);
+  const pxPerFrame = 9;   // halved (QA F-11)
+  const pinboxEl = section.querySelector('.pinbox');
+  const MOB_PXPF = 11;    // halved (QA F-11)
+  let mobPinTop = 72;
+  function layout() {
+    mobile = innerWidth <= 780;
+    if (mobile) {
+      section.style.height = `${Math.round(pinboxEl.offsetHeight + FRAMES * MOB_PXPF)}px`;
+      mobPinTop = parseFloat(getComputedStyle(pinboxEl).top) || 72;
+    } else {
+      section.style.height = `${Math.round(innerHeight + FRAMES * pxPerFrame)}px`;
+    }
+  }
+  layout();
+
+  const path = i => `frames/colosseum/f_${String(i + 1).padStart(3, '0')}.avif`;
+  const cache = new Map();
+  const WINDOW = 26;
+  let current = 0, framesDead = false;
+  let scan = null, scanFor = -1;
+  const sliceTmp = document.createElement('canvas');
+
+  async function ensure(i) {
+    if (framesDead) return;
+    for (const [k, bmp] of cache) if (Math.abs(k - i) > WINDOW && bmp !== 'missing') { bmp.close?.(); cache.delete(k); }
+    for (let d = 0; d <= WINDOW; d++) for (const j of [i + d, i - d]) {
+      if (j < 0 || j >= FRAMES || cache.has(j)) continue;
+      cache.set(j, 'loading');
+      fetch(path(j)).then(r => { if (!r.ok) throw 0; return r.blob(); })
+        .then(b => createImageBitmap(b))
+        .then(bmp => { if (cache.get(j) === 'loading') cache.set(j, bmp); })
+        .catch(() => { cache.set(j, 'missing'); if (j === 0) framesDead = true; });
+      return;
+    }
+  }
+
+  function size() {
+    layout();
+    const r = canvas.getBoundingClientRect();
+    canvas.width = Math.round(r.width * dpr());
+    canvas.height = Math.round(r.height * dpr());
+    scanFor = -1;
+  }
+  let lastW = innerWidth, lastH = innerHeight;
+  addEventListener('resize', () => {
+    // phone URL-bar show/hide fires resize with a height-only delta; relayouting
+    // mid-scroll moves the page under the reader, so ignore it (KB lesson 11)
+    if (mobile && innerWidth === lastW && Math.abs(innerHeight - lastH) < 200) { lastH = innerHeight; return; }
+    lastW = innerWidth; lastH = innerHeight;
+    size();
+  });
+
+  function rebuild() {
+    const bmp = cache.get(current);
+    if (!bmp || bmp === 'loading' || bmp === 'missing') return;
+    const W = canvas.width, H = canvas.height;
+    const cw = 960, ch = Math.max(2, Math.round(cw * H / Math.max(1, W)));
+    const cov = document.createElement('canvas');
+    cov.width = cw; cov.height = ch;
+    const cc = cov.getContext('2d');
+    const s = Math.max(cw / bmp.width, ch / bmp.height);
+    cc.drawImage(bmp, (cw - bmp.width * s) / 2, 0, bmp.width * s, bmp.height * s);
+    scan = buildScan(cov, W, H, Math.max(3, Math.round(3.2 * dpr())), Math.min(720, cw), 0.09);
+    scanFor = current;
+  }
+
+  function tintSlice(y, h, dx, color) {
+    sliceTmp.width = scan.width; sliceTmp.height = Math.max(1, Math.round(h));
+    const tc = sliceTmp.getContext('2d');
+    tc.drawImage(scan, 0, y, scan.width, sliceTmp.height, 0, 0, scan.width, sliceTmp.height);
+    tc.globalCompositeOperation = 'source-in';
+    tc.fillStyle = color;
+    tc.fillRect(0, 0, sliceTmp.width, sliceTmp.height);
+    ctx.drawImage(sliceTmp, dx, y);
+  }
+
+  let burst = null, nextBurst = performance.now() + 1400, lastStill = -1;
+  let cluster = null, nextCluster = performance.now() + 1900;
+  function render(now) {
+    if (!scan) { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+    if (REDUCED) {
+      if (lastStill === current) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(scan, 0, 0);
+      lastStill = current;
+      return;
+    }
+    const W = canvas.width, H = canvas.height, d = dpr(), v = XMIT.velocity;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = 0.965 + Math.random() * 0.035 - v * 0.08;
+    ctx.drawImage(scan, 0, 0);
+    ctx.globalAlpha = 1;
+    const jitters = 4 + Math.round(v * 9);
+    for (let i = 0; i < jitters; i++) {
+      const y = Math.random() * H, h = (1 + Math.random() * 2) * d;
+      const dx = (Math.random() - .5) * (6 + v * 26) * d;
+      ctx.clearRect(0, y, W, h);
+      ctx.drawImage(scan, 0, y, W, h, dx, y, W, h);
+      if (Math.random() < 0.35) {
+        ctx.globalCompositeOperation = 'lighter';
+        tintSlice(y, h, dx - 2 * d, GLITCH_TEAL);
+        tintSlice(y, h, dx + 2 * d, GLITCH_PINK);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    }
+    if (Math.random() < 0.10 + v * 0.25) {
+      const y = Math.random() * H, h = (1 + Math.random()) * d;
+      const dx = (Math.random() - .5) * 50 * d;
+      ctx.globalCompositeOperation = 'lighter';
+      tintSlice(y, h, dx, Math.random() < .5 ? GLITCH_TEAL : GLITCH_PINK);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    if (!burst && (now > nextBurst || v > 0.55)) {
+      burst = { until: now + 240 + Math.random() * 320, bands: Array.from({ length: 4 + (Math.random() * 5 | 0) }, () => ({ y: Math.random() * H, h: (2 + Math.random() * 13) * d, dx: (Math.random() - .5) * (90 + v * 120) * d })) };
+      nextBurst = now + 1100 + Math.random() * 2400;
+    }
+    if (burst) {
+      for (const b of burst.bands) {
+        ctx.clearRect(0, b.y, W, b.h);
+        ctx.drawImage(scan, 0, b.y, W, b.h, b.dx, b.y, W, b.h);
+        ctx.globalCompositeOperation = 'lighter';
+        tintSlice(b.y, b.h, b.dx - 4 * d, GLITCH_TEAL);
+        tintSlice(b.y, b.h, b.dx + 4 * d, GLITCH_PINK);
+        ctx.globalCompositeOperation = 'source-over';
+        if (Math.random() < .5) b.dx = (Math.random() - .5) * 90 * d;
+      }
+      if (now > burst.until) burst = null;
+    }
+    if (!cluster && (now > nextCluster || (burst && Math.random() < 0.04))) {
+      cluster = newCluster(W, H, d, now);
+      nextCluster = now + 2000 + Math.random() * 3500;
+    }
+    if (cluster) { drawCluster(ctx, cluster); if (now > cluster.until) cluster = null; }
+  }
+
+  function progress() {
+    const rect = section.getBoundingClientRect();
+    if (mobile) {
+      const travel = FRAMES * MOB_PXPF;
+      return Math.min(1, Math.max(0, (mobPinTop - rect.top) / travel));
+    }
+    const HDR = 72;
+    const scrollable = rect.height - (innerHeight - HDR);
+    return Math.min(1, Math.max(0, (HDR - rect.top) / scrollable));
+  }
+
+  function update(now) {
+    const p = progress();
+    if (p >= 1 && !update.trackedEnd) { update.trackedEnd = true; track('scroll_past_colosseum'); }
+    const f = Math.min(FRAMES - 1, Math.round(p * (FRAMES - 1)));
+    if (f !== current) current = f;
+    ensure(f); ensure(f);
+    if (mobile) {
+      // captions share one slot under the band; only the latest in-range one shows.
+      // the last caption holds to the end so it rides out with the pin, no empty zone
+      let active = null;
+      const lastCap = captions[captions.length - 1];
+      for (const c of captions) {
+        const r1 = c === lastCap ? 1.01 : +c.dataset.r1;
+        if (p >= +c.dataset.r0 && p <= r1) active = c;
+      }
+      for (const c of captions) c.classList.toggle('on', c === active);
+    } else {
+      for (const c of captions) {
+        const on = p >= +c.dataset.r0 && p <= +c.dataset.r1;
+        c.classList.toggle('on', on);
+      }
+    }
+    const rect = section.getBoundingClientRect();
+    if (rect.bottom > -100 && rect.top < innerHeight + 100) {
+      if (scanFor !== current) rebuild();
+      render(now);
+    }
+    requestAnimationFrame(update);
+  }
+  size();
+  requestAnimationFrame(update);
+})();
+</script>
+</body>
+</html>

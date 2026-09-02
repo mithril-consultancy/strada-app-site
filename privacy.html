@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en" data-theme="sanguis">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Strada</title>
+<link rel="icon" type="image/png" href="assets/favicon.png?v=3">
+<link rel="apple-touch-icon" href="assets/icon-lv-512.png">
+<meta name="description" content="The privacy policy for the Strada app.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Cormorant:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0B;
+    --bg-2: #141416;
+    --ink: #E9E4D8;
+    --ink-dim: #8A857A;
+  }
+  [data-theme="sanguis"] { --accent: #D6453D; --accent-dim: #6E1414; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scrollbar-color: var(--accent-dim) var(--bg); overflow-x: clip; }
+  body {
+    overflow-x: clip;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Archivo", sans-serif;
+    caret-color: var(--accent);
+  }
+  ::selection { background: var(--accent-dim); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 18px clamp(24px, 5vw, 64px);
+  }
+  .logotype { position: relative; display: inline-block; font-weight: 900; font-variation-settings: "wdth" 125; font-size: 22px; letter-spacing: 0.18em; color: var(--ink); text-decoration: none; }
+  .zaps { position: relative; }
+  .zaps .dash { position: absolute; height: 2px; opacity: 0; pointer-events: none; z-index: 2; }
+  .zaps.burst .dash { opacity: 1; }
+  .logotype.hold { text-shadow: -2px 0 rgba(52,211,164,0.85), 2px 0 rgba(224,112,216,0.85); }
+  header nav a { color: var(--ink-dim); text-decoration: none; font-size: 13px; letter-spacing: 0.22em; transition: color 160ms ease-out; }
+  header nav a:hover { color: var(--accent); }
+
+  h1 {
+    font-weight: 900;
+    font-variation-settings: "wdth" 125;
+    text-transform: uppercase;
+    line-height: 1.06;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+    font-size: clamp(1.75rem, 4.2vw, 3rem);
+  }
+  h2 { font-weight: 700; font-variation-settings: "wdth" 110; font-size: clamp(1.05rem, 1.6vw, 1.3rem); margin-top: 44px; }
+  .written { font-family: "Cormorant", serif; font-style: italic; font-weight: 400; line-height: 1.4; }
+  .zapped { text-shadow: -3px 0 rgba(52,211,164,0.75), 3px 0 rgba(224,112,216,0.75); transform: translateX(var(--zx, 0)); }
+  .zg { display: inline-block; position: relative; }
+  .zg .slice, .logotype .slice { position: absolute; inset: 0; pointer-events: none; user-select: none; }
+  .zh { position: relative; }
+
+  .numeral { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0.34em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 22px; }
+
+  .beam { position: absolute; top: 58px; left: 0; width: 100%; height: clamp(64px, 7vw, 128px); z-index: 0; pointer-events: none; }
+  main { position: relative; }
+
+  .wrap { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; padding: calc(58px + clamp(64px, 7vw, 128px) + 44px) clamp(24px, 5vw, 64px) 40px; }
+  .lede { font-size: clamp(1.15rem, 2vw, 1.4rem); color: var(--ink-dim); margin-top: 22px; }
+  .wrap p { font-size: 15px; line-height: 1.65; color: var(--ink-dim); margin-top: 14px; }
+  .wrap p b, .wrap li b { font-weight: 500; color: var(--ink); }
+  .wrap a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .wrap ul { list-style: none; margin-top: 14px; }
+  .wrap li { position: relative; padding: 8px 0 8px 24px; font-size: 15px; line-height: 1.6; color: var(--ink-dim); }
+  .wrap li::before { content: "·"; position: absolute; left: 4px; color: var(--accent); font-weight: 900; }
+  .stamp { margin-top: 40px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); }
+
+  footer.site { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); padding: 40px clamp(24px, 5vw, 64px) 34px; }
+  footer.site a { color: var(--ink-dim); text-decoration: none; transition: color 160ms ease-out; }
+  footer.site a:hover { color: var(--accent); }
+
+  @media (max-width: 780px) {
+    .beam { display: none; }
+    .wrap { padding-top: 110px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logotype" href="/" aria-label="Strada"><span class="lg-core">STRADA</span><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i><i class="dash" aria-hidden="true"></i></a>
+  <nav><a href="/">RETURN</a></nav>
+</header>
+
+<main>
+  <canvas class="beam" id="beam" aria-hidden="true"></canvas>
+
+  <div class="wrap">
+    <span class="numeral">Privacy</span>
+    <h1 class="zh">Privacy <span class="zg">policy.</span></h1>
+    <p class="written lede">Strada is a workplace tool. This policy says plainly what the app
+    collects, where it goes, and what it never touches.</p>
+
+    <!-- ENTITY NAME: appears 3 times on this page (here, "Who runs the app",
+         and the footer). Swap all three together if the legal entity changes. -->
+
+    <h2>Who runs the app</h2>
+    <p>The Strada app is operated by <b>Mithril</b> ("we") for Strada, Dubai. It is an internal
+    tool for Strada's own agents and managers: you sign in with your Strada work account, and
+    your employer administers your access. If you do not work at Strada, the app has nothing
+    for you and collects nothing from you.</p>
+
+    <h2>What the app collects from you</h2>
+    <ul>
+      <li><b>Your work account.</b> Name, work email, and the profile photo you choose to set.</li>
+      <li><b>Voice notes.</b> The app uses the microphone only when you record a note. The
+      recording is uploaded so it can be transcribed and filed; transcripts are kept on the
+      lead's record, and some recordings are retained with them.</li>
+      <li><b>Photos you pick.</b> The photo library opens only when you choose an avatar or
+      attach a screenshot to feedback. The app never scans your library.</li>
+      <li><b>Feedback.</b> What you write in the feedback form, with your name and work email,
+      so a person can reply.</li>
+      <li><b>AI conversations.</b> Your threads with Guida are stored so you can return to
+      them. You can delete a thread in the app.</li>
+      <li><b>Basic device facts.</b> Device model, operating system and app version, used to
+      keep the app updated and debug it. No advertising identifiers.</li>
+      <li><b>Push tokens.</b> If you are a manager and turn notifications on.</li>
+    </ul>
+
+    <h2>What the app never collects</h2>
+    <p><b>No location. No contacts. No call recording. No reading of your messages.</b>
+    WhatsApp and phone calls open in their own apps; Strada only opens them. There are no
+    advertising or analytics trackers in the app.</p>
+
+    <h2>The CRM data the app works on</h2>
+    <p>Most of what you see in the app (leads, buyers, owners, listings and their history) is
+    <b>Strada's CRM data</b>, held in Strada's Salesforce and processed here on Strada's
+    behalf. Strada controls that data; the app is the tool it is worked with. Activity you
+    log against it (calls made, notes filed, deals progressed) is part of that record and is
+    <b>visible to Strada's management</b>, as it is in any CRM.</p>
+
+    <h2>AI processing</h2>
+    <p>The app's intelligence runs on external AI providers, used only to provide the feature
+    in front of you: voice recordings are transcribed by <b>OpenAI</b>, and transcripts,
+    questions you ask Guida, and the CRM records needed to answer them are processed by
+    <b>Anthropic</b>. This processing happens through their business APIs to serve your
+    request; it is not used to advertise to anyone.</p>
+
+    <h2>Who else touches the data</h2>
+    <p>The services the app is built on: <b>Supabase</b> (database, storage and sign-in),
+    <b>Salesforce</b> (Strada's CRM), <b>OpenAI</b> and <b>Anthropic</b> (AI processing, as
+    above), <b>Google</b> (work sign-in, and calendar for managers who connect it),
+    <b>Resend</b> (email) and <b>Expo</b> (app updates and notifications). We do not sell
+    data to anyone, and nothing is shared beyond what these services need to run the app.</p>
+
+    <h2>Retention and deletion</h2>
+    <p>Your account and what you file through the app are kept while you work at Strada,
+    because they are part of the company record. Signing out removes the app's data and push
+    registration from your device. To have your account or a recording removed, ask your
+    admin or write to <a href="mailto:support@stradauae.com">support@stradauae.com</a>, and
+    it will be handled by a person.</p>
+
+    <h2>Changes and contact</h2>
+    <p>If this policy changes, the date below changes with it. Questions go to
+    <a href="mailto:support@stradauae.com">support@stradauae.com</a>.</p>
+
+    <p class="stamp">Effective 3 September 2026 · Strada · com.strada.agents</p>
+  </div>
+
+  <footer class="site">
+    <span>STRADA · MMXXVI · A MITHRIL PRODUCT</span>
+    <a href="/">Return</a>
+  </footer>
+</main>
+
+<script>
+/* ---------- header + logotype flicker (same engine as the main site, minus
+   the LVDVS letter swap: STRADA has no U to set as V) ---------- */
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const XMIT = { velocity: 0 };
+
+const DASH_COLORS = ['#34D3A4', '#2EA88A', '#E070D8', '#C13BB0', '#EDEAE1'];
+function scatterDashes(el) {
+  el.querySelectorAll('.dash').forEach(dd => {
+    dd.style.top = (-12 + Math.random() * 115) + '%';
+    dd.style.left = (-12 + Math.random() * 65) + '%';
+    dd.style.width = (16 + Math.random() * 55) + '%';
+    dd.style.height = (1 + Math.random() * 2.2) + 'px';
+    dd.style.background = DASH_COLORS[Math.random() * DASH_COLORS.length | 0];
+  });
+}
+(() => {
+  const logo = document.querySelector('.logotype');
+  logo.classList.add('zaps');
+  if (REDUCED) return;
+  let busy = false;
+  setInterval(() => {
+    if (busy || Math.random() > 0.34) return;
+    busy = true;
+    scatterDashes(logo);
+    logo.classList.add('burst', 'hold');
+    if (logo.__sliceBurst) logo.__sliceBurst();
+    setTimeout(() => logo.classList.remove('burst'), 140 + Math.random() * 120);
+    const holdFor = 520 + Math.random() * 380;
+    setTimeout(() => { scatterDashes(logo); logo.classList.add('burst'); }, holdFor);
+    setTimeout(() => {
+      logo.classList.remove('burst', 'hold');
+      busy = false;
+    }, holdFor + 130 + Math.random() * 120);
+  }, 2600);
+})();
+
+/* ---------- heading zap ---------- */
+if (!REDUCED) {
+  const targets = [...document.querySelectorAll('.zh')];
+  targets.forEach(el => {
+    el.classList.add('zaps');
+    for (let i = 0; i < 6; i++) {
+      const d = document.createElement('i');
+      d.className = 'dash';
+      d.setAttribute('aria-hidden', 'true');
+      el.appendChild(d);
+    }
+  });
+  setInterval(() => {
+    const el = targets[Math.random() * targets.length | 0];
+    if (!el || Math.random() > 0.225 || el.classList.contains('burst')) return;
+    const r = el.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight) return;
+    zap(el);
+    if (Math.random() < 0.45) setTimeout(() => zap(el, 130), 360 + Math.random() * 180);
+  }, 1300);
+}
+function zap(el, dur) {
+  if (REDUCED || !el.classList.contains('zaps')) return;
+  scatterDashes(el);
+  el.style.setProperty('--zx', ((Math.random() - .5) * 6 | 0) + 'px');
+  el.classList.add('burst', 'zapped');
+  if (el.__sliceBurst) el.__sliceBurst();
+  setTimeout(() => el.classList.remove('burst', 'zapped'), (dur || 190) + Math.random() * 220);
+}
+
+/* ---------- slice glitch ---------- */
+function makeSlicer(host, core, getText) {
+  let live = [], busy = false;
+  const clear = () => { live.forEach(s => s.remove()); live = []; core.style.visibility = ''; };
+  const scatter = () => {
+    clear();
+    core.style.visibility = 'hidden';
+    const cuts = [0, ...Array.from({ length: 4 + (Math.random() * 3 | 0) }, () => Math.random() * 100).sort((a, b) => a - b), 100];
+    for (let i = 0; i < cuts.length - 1; i++) {
+      const s = document.createElement('span');
+      s.className = 'slice';
+      s.setAttribute('aria-hidden', 'true');
+      s.textContent = getText();
+      s.style.clipPath = `inset(${cuts[i].toFixed(1)}% 0 ${(100 - cuts[i + 1]).toFixed(1)}% 0)`;
+      const big = Math.random() < 0.3;
+      const dx = (Math.random() - .5) * (big ? 1.1 : 0.12);
+      const dy = Math.random() < 0.25 ? (Math.random() - .5) * 0.06 : 0;
+      s.style.transform = `translate(${dx.toFixed(3)}em, ${dy.toFixed(3)}em)`;
+      if (Math.random() < 0.18) s.style.opacity = (0.4 + Math.random() * 0.4).toFixed(2);
+      host.appendChild(s);
+      live.push(s);
+    }
+  };
+  return () => {
+    if (busy || REDUCED) return;
+    busy = true;
+    let steps = 2 + (Math.random() * 3 | 0);
+    (function step() {
+      scatter();
+      if (steps-- > 0) setTimeout(step, 60 + Math.random() * 70);
+      else setTimeout(() => { clear(); busy = false; }, 70 + Math.random() * 60);
+    })();
+  };
+}
+if (!REDUCED) {
+  document.querySelectorAll('.zg').forEach(g => {
+    const word = g.textContent;
+    const core = document.createElement('span');
+    core.textContent = word;
+    g.textContent = '';
+    g.appendChild(core);
+    const heading = g.closest('.zh') || g;
+    heading.__sliceBurst = makeSlicer(g, core, () => word);
+  });
+  const lgLogo = document.querySelector('.logotype');
+  const lgCore = lgLogo && lgLogo.querySelector('.lg-core');
+  if (lgCore) lgLogo.__sliceBurst = makeSlicer(lgLogo, lgCore, () => lgCore.textContent);
+}
+
+/* ---------- scanline transmission (same engine as the main site) ---------- */
+const TONE = l => { const t = Math.min(1, l * 1.45); return [84 + t * 122, 78 + t * 116, 108 + t * 128]; };
+const GLITCH_TEAL = 'rgba(52,211,164,0.55)', GLITCH_PINK = 'rgba(224,112,216,0.5)';
+const STREAK_COLORS = ['rgba(52,211,164,0.95)', 'rgba(46,168,138,0.9)', 'rgba(224,112,216,0.9)', 'rgba(193,59,176,0.9)', 'rgba(237,234,225,0.85)'];
+function newCluster(W, H, d, now) {
+  const cy = Math.random() * H;
+  const segs = [];
+  const n = 5 + (Math.random() * 6 | 0);
+  for (let i = 0; i < n; i++) {
+    segs.push({
+      x: Math.random() * W * 0.9 - W * 0.1,
+      y: cy + (Math.random() - .5) * 32 * d,
+      w: (30 + Math.random() * 300) * d,
+      h: (1.2 + Math.random() * 2.2) * d,
+      c: STREAK_COLORS[Math.random() * STREAK_COLORS.length | 0],
+    });
+  }
+  return { segs, until: now + 260 + Math.random() * 520 };
+}
+function drawCluster(ctx, cl) { for (const s of cl.segs) { ctx.fillStyle = s.c; ctx.fillRect(s.x, s.y, s.w, s.h); } }
+
+function buildScan(source, W, H, spacing, sw = 240, splitDelta = Infinity, gain = 1) {
+  const sh = Math.round(sw * (source.height / source.width));
+  const s = document.createElement('canvas'); s.width = sw; s.height = sh;
+  const sc = s.getContext('2d', { willReadFrequently: true });
+  sc.drawImage(source, 0, 0, sw, sh);
+  const px = sc.getImageData(0, 0, sw, sh).data;
+  const out = document.createElement('canvas'); out.width = W; out.height = H;
+  const bc = out.getContext('2d');
+  const rows = Math.floor(H / spacing), xScale = W / sw, lineH = Math.max(1, Math.round(spacing * 0.42));
+  for (let r = 0; r < rows; r++) {
+    const sy = Math.min(sh - 1, Math.round((r / rows) * sh));
+    let run = null;
+    for (let x = 0; x <= sw; x++) {
+      let l = 0;
+      if (x < sw) { const i = (sy * sw + x) * 4; l = Math.min(1, gain * (px[i] * .299 + px[i+1] * .587 + px[i+2] * .114) / 255); }
+      const flush = () => {
+        const avg = run.sum / run.n, [cr, cg, cb] = TONE(avg);
+        bc.fillStyle = `rgba(${cr|0},${cg|0},${cb|0},${Math.min(1, .25 + avg * 1.15)})`;
+        bc.fillRect(run.x0 * xScale, r * spacing, (x - run.x0) * xScale, lineH);
+        run = null;
+      };
+      if (l > 0.055) {
+        if (run && Math.abs(l - run.sum / run.n) > splitDelta) flush();
+        if (!run) run = { x0: x, sum: 0, n: 0 };
+        run.sum += l; run.n++;
+      } else if (run) flush();
+    }
+  }
+  return out;
+}
+function tinted(src, color) {
+  const t = document.createElement('canvas'); t.width = src.width; t.height = src.height;
+  const tc = t.getContext('2d');
+  tc.drawImage(src, 0, 0);
+  tc.globalCompositeOperation = 'source-in';
+  tc.fillStyle = color; tc.fillRect(0, 0, t.width, t.height);
+  return t;
+}
+
+function transmission(canvas, src, opts = {}) {
+  const calm = !!opts.calm;
+  const splitDelta = opts.splitDelta ?? Infinity;
+  const ctx = canvas.getContext('2d');
+  const img = new Image(); img.src = src;
+  const cssReady = document.fonts ? document.fonts.ready : Promise.resolve();
+  Promise.all([img.decode(), cssReady]).then(() => {
+    const start = () => { if (canvas.getBoundingClientRect().width < 10) return requestAnimationFrame(start); init(); };
+    start();
+  });
+  function init() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    let W, H, base, cyan, magenta;
+    const build = () => {
+      const r = canvas.getBoundingClientRect();
+      // The beam is display:none under 780px, where its rect is 0x0. Building
+      // from that makes 0-size tint canvases and every drawImage after it
+      // throws, killing the frame loop. Keep the last good build instead; the
+      // resize back past 780 fires this again with a real rect.
+      if (r.width < 2 || r.height < 2) return;
+      W = Math.round(r.width * dpr); H = Math.round(r.height * dpr);
+      canvas.width = W; canvas.height = H;
+      base = buildScan(img, W, H, Math.max(3, Math.round(3.2 * dpr)), opts.sw ?? 240, splitDelta, opts.gain ?? 1);
+      cyan = tinted(base, GLITCH_TEAL);
+      magenta = tinted(base, GLITCH_PINK);
+    };
+    build();
+    addEventListener('resize', () => { build(); if (REDUCED) still(); });
+    const still = () => { ctx.clearRect(0, 0, W, H); ctx.drawImage(base, 0, 0); };
+    if (REDUCED) return still();
+    let burst = null, next = performance.now() + 1600;
+    let cluster = null, nextCluster = performance.now() + 1500;
+    (function frame(now) {
+      const vr = canvas.getBoundingClientRect();
+      if (vr.bottom < -60 || vr.top > innerHeight + 60) return requestAnimationFrame(frame);
+      const v = XMIT.velocity;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = (calm ? 0.972 + Math.random() * 0.028 : 0.93 + Math.random() * 0.07) - v * 0.08;
+      ctx.drawImage(base, 0, 0);
+      ctx.globalAlpha = 1;
+      const jitters = calm ? Math.round(v * 3) : 4 + Math.round(v * 9);
+      for (let i = 0; i < jitters; i++) {
+        const y = Math.random() * H, h = (1 + Math.random() * 2) * dpr;
+        const dx = (Math.random() - .5) * (6 + v * 26) * dpr * (calm ? 0.4 : 1);
+        ctx.clearRect(0, y, W, h);
+        ctx.drawImage(base, 0, y, W, h, dx, y, W, h);
+        if (Math.random() < 0.35) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(cyan, 0, y, W, h, dx - 2 * dpr, y, W, h);
+          ctx.drawImage(magenta, 0, y, W, h, dx + 2 * dpr, y, W, h);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      }
+      if (Math.random() < (calm ? 0.03 : 0.10) + v * 0.25) {
+        const y = Math.random() * H, h = (1 + Math.random()) * dpr;
+        const dx = (Math.random() - .5) * 50 * dpr;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(Math.random() < .5 ? cyan : magenta, 0, y, W, h, dx, y, W, h);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      if (!burst && now > next) {
+        burst = { until: now + 240 + Math.random() * 320, bands: Array.from({ length: 4 + (Math.random() * 5 | 0) }, () => ({ y: Math.random() * H, h: (2 + Math.random() * 13) * dpr, dx: (Math.random() - .5) * 90 * dpr })) };
+        next = now + (calm ? 4200 + Math.random() * 5600 : 1100 + Math.random() * 2400);
+      }
+      if (burst) {
+        for (const b of burst.bands) {
+          ctx.clearRect(0, b.y, W, b.h);
+          ctx.drawImage(base, 0, b.y, W, b.h, b.dx, b.y, W, b.h);
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(cyan, 0, b.y, W, b.h, b.dx - 4 * dpr, b.y, W, b.h);
+          ctx.drawImage(magenta, 0, b.y, W, b.h, b.dx + 4 * dpr, b.y, W, b.h);
+          ctx.globalCompositeOperation = 'source-over';
+          if (Math.random() < .5) b.dx = (Math.random() - .5) * 90 * dpr;
+        }
+        if (now > burst.until) burst = null;
+      }
+      if (!cluster && (now > nextCluster || (burst && Math.random() < 0.04))) {
+        cluster = newCluster(W, H, dpr, now);
+        nextCluster = now + (calm ? 7000 + Math.random() * 8000 : 2000 + Math.random() * 3500);
+      }
+      if (cluster) { drawCluster(ctx, cluster); if (now > cluster.until) cluster = null; }
+      requestAnimationFrame(frame);
+    })(performance.now());
+  }
+}
+
+if (innerWidth > 780) {
+  transmission(document.getElementById('beam'), 'assets/beam.webp', { calm: true, splitDelta: 0.09, sw: 760 });
+}
+</script>
+</body>
+</html>
