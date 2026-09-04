@@ -29,8 +29,10 @@ Notes for whoever hosts it:
 - Security headers are set in `vercel.json` for every route: a content security
   policy (self only, plus Google Fonts), `nosniff`, `X-Frame-Options: DENY`,
   a referrer policy, a permissions policy denying camera, microphone, location
-  and the rest, `Cross-Origin-Opener-Policy` and HSTS. **HSTS is deliberately
-  set without `includeSubDomains`**: this host's siblings under
+  and the rest, `Cross-Origin-Opener-Policy` and HSTS. The HSTS `max-age` is
+  63072000 to match what the domain already served, so setting these headers
+  does not shorten it. **HSTS is deliberately set without `includeSubDomains`**:
+  this host's siblings under
   `*.strada.ludus.inc` are live Strada infrastructure, and asserting the
   directive here would force HTTPS on hosts this repo does not own. If you want
   the preload list, set that at the infrastructure level where the whole zone
