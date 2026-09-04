@@ -278,8 +278,16 @@
         <p>
           The Strada app is operated by <b>Mithril</b> ("we") for Strada, Dubai. It is an internal
           tool for Strada's own agents and managers: you sign in with your Strada work account, and
-          your employer administers your access. If you do not work at Strada, the app has nothing
+          your employer decides who gets access. If you do not work at Strada, the app has nothing
           for you and collects nothing from you.
+        </p>
+
+        <h2>How you sign in</h2>
+        <p>
+          Sign-in is by a one time code sent to your work email, or with your Google work account.
+          There is no password to lose. Accounts are not open to the public: an email can only sign
+          in if it already belongs to someone in Strada's own records, so your access starts and
+          ends with your employer. Manager accounts must also use an authenticator app.
         </p>
 
         <h2>What the app collects from you</h2>
@@ -288,34 +296,39 @@
             <b>Your work account.</b> Name, work email, and the profile photo you choose to set.
           </li>
           <li>
-            <b>Voice notes.</b> The app uses the microphone only when you record a note. The
-            recording is uploaded so it can be transcribed and filed; transcripts are kept on the
-            lead's record, and some recordings are retained with them.
+            <b>Voice notes.</b> The app uses the microphone only while you are recording a note. The
+            recording is sent to our transcription provider, turned into text, and
+            <b>is not stored by us</b>. What you choose to keep from the note is what gets saved to
+            the lead's record.
           </li>
           <li>
-            <b>Photos you pick.</b> The photo library opens only when you choose an avatar or attach
-            a screenshot to feedback. The app never scans your library.
+            <b>Photos you pick.</b> The photo picker opens only when you set a profile photo or
+            attach a screenshot to feedback. The app never scans your library and never opens the
+            camera itself. Both are held in our own file storage and served from an unlisted web
+            address.
           </li>
           <li>
-            <b>Feedback.</b> What you write in the feedback form, with your name and work email, so
-            a person can reply.
+            <b>Feedback.</b> What you write, with your name and work email so a person can reply,
+            plus technical details of the device you sent it from (browser, screen size, network
+            type, timezone) so the problem can be reproduced.
           </li>
           <li>
             <b>AI conversations.</b> Your threads with Guida are stored so you can return to them.
-            You can delete a thread in the app.
+            Removing a thread hides it from your list; the record itself is kept.
           </li>
           <li>
-            <b>Basic device facts.</b> Device model, operating system and app version, used to keep
-            the app updated and debug it. No advertising identifiers.
+            <b>Sign-in and session records.</b> For each device you sign in from we keep the network
+            address, country, browser and time, so that you and your administrators can see active
+            sessions and sign a lost device out.
           </li>
-          <li><b>Push tokens.</b> If you are a manager and turn notifications on.</li>
         </ul>
 
         <h2>What the app never collects</h2>
         <p>
-          <b>No location. No contacts. No call recording. No reading of your messages.</b> WhatsApp
-          and phone calls open in their own apps; Strada only opens them. There are no advertising
-          or analytics trackers in the app.
+          <b>No location. No contacts. No camera stream. No call recording. No reading of your
+          messages.</b> WhatsApp and phone calls open in their own apps, and Strada only opens them.
+          There are no advertising identifiers, no ad networks and no product analytics trackers in
+          the app.
         </p>
 
         <h2>The CRM data the app works on</h2>
@@ -329,29 +342,35 @@
 
         <h2>AI processing</h2>
         <p>
-          The app's intelligence runs on external AI providers, used only to provide the feature in
-          front of you: voice recordings are transcribed by <b>OpenAI</b>, and transcripts,
-          questions you ask Guida, and the CRM records needed to answer them are processed by
-          <b>Anthropic</b>. This processing happens through their business APIs to serve your
-          request; it is not used to advertise to anyone.
+          The app's intelligence runs on external AI providers, used only to produce the answer in
+          front of you. Voice recordings are transcribed by <b>OpenAI</b>. Claude models from
+          <b>Anthropic</b> power Guida, read a voice note back to draft the update, write the lead
+          briefings and summarise the floor for managers. To do that, the lead details those
+          features need, which can include a client's name, phone number, email and budget, are sent
+          with the request. This runs through the providers' business APIs to answer that one
+          request, and it is not used to advertise to anyone.
         </p>
 
         <h2>Who else touches the data</h2>
         <p>
-          The services the app is built on: <b>Supabase</b> (database, storage and sign-in),
-          <b>Salesforce</b> (Strada's CRM), <b>OpenAI</b> and <b>Anthropic</b> (AI processing, as
-          above), <b>Google</b> (work sign-in, and calendar for managers who connect it),
-          <b>Resend</b> (email) and <b>Expo</b> (app updates and notifications). We do not sell data
-          to anyone, and nothing is shared beyond what these services need to run the app.
+          The services the app is built on: <b>Google Cloud</b> (the servers, the database and file
+          storage, in Europe), <b>Vercel</b> (serves the app itself), <b>Salesforce</b> (Strada's
+          CRM), <b>OpenAI</b> and <b>Anthropic</b> (the AI processing above), <b>Google</b> (work
+          sign-in), <b>SendGrid</b> (the sign-in code emails), <b>hCaptcha</b> (the bot check at
+          sign-in), <b>Sentry</b> (error reports, which identify you only by an account number) and
+          <b>CARTO</b> (the map tiles, so your network address reaches them when a map draws). We do
+          not sell data to anyone, and nothing is shared beyond what these services need to run the
+          app.
         </p>
 
         <h2>Retention and deletion</h2>
         <p>
-          Your account and what you file through the app are kept while you work at Strada, because
-          they are part of the company record. Signing out removes the app's data and push
-          registration from your device. To have your account or a recording removed, ask your admin
-          or write to <a href="mailto:support@ludus.inc">support@ludus.inc</a>, and it will be
-          handled by a person.
+          What you file through the app is part of the company record and is kept while you work at
+          Strada. Be straight about the rest: <b>nothing is deleted on a timer</b>, and there is no
+          button inside the app that erases your whole account. Signing out ends that session and
+          clears the app's copy of your data from the device. To have your account, a note or a file
+          removed, ask your administrator or write to
+          <a href="mailto:support@ludus.inc">support@ludus.inc</a>, and a person will do it.
         </p>
 
         <h2>Changes and contact</h2>
@@ -361,7 +380,7 @@
         </p>
 
         <p class="stamp">
-          Effective 3 September 2026 · Strada · iOS: inc.ludus.strada-agents · Android:
+          Effective 4 September 2026 · Strada · iOS: inc.ludus.strada-agents · Android:
           inc.ludus.strada.agents
         </p>
       </div>
