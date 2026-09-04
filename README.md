@@ -1,6 +1,7 @@
 # Strada app site
 
-The public home for the **Strada** app (iOS and Android, `com.strada.agents`):
+The public home for the **Strada** app (iOS `inc.ludus.strada-agents`, Android
+`inc.ludus.strada.agents`):
 basic app info, the support contact, and the privacy policy the store listings
 point at.
 
@@ -28,7 +29,7 @@ Notes for whoever hosts it:
 
 ## Two things to set before store submission
 
-1. **The support email.** `support@stradauae.com` appears 3 times (twice in
+1. **The support email.** `support@ludus.inc` appears 3 times (twice in
    `index.html`, once in `privacy.html`). It is a placeholder until the real
    support address is confirmed. Apple tests the support contact.
 2. **The legal entity.** "Mithril" appears 4 places: 3 in `privacy.html`
