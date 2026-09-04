@@ -23,10 +23,18 @@ Notes for whoever hosts it:
 - `assets/` and `frames/` are served `immutable, max-age=31536000`. Never
   overwrite a deployed file under the same name: rename it and update the
   reference, or browsers keep the old bytes for a year.
-- `index.html` still carries `<meta name="robots" content="noindex">` from when
-  this was a review copy. The site is on its final domain now, so that line can
-  come off whenever you want the page indexed. Left in deliberately, not by
-  oversight.
+- The site is indexable. The `noindex` tag from its review-copy days was
+  removed once it reached its final domain, because a store support and privacy
+  page should be publicly findable.
+- Security headers are set in `vercel.json` for every route: a content security
+  policy (self only, plus Google Fonts), `nosniff`, `X-Frame-Options: DENY`,
+  a referrer policy, a permissions policy denying camera, microphone, location
+  and the rest, `Cross-Origin-Opener-Policy` and HSTS. **HSTS is deliberately
+  set without `includeSubDomains`**: this host's siblings under
+  `*.strada.ludus.inc` are live Strada infrastructure, and asserting the
+  directive here would force HTTPS on hosts this repo does not own. If you want
+  the preload list, set that at the infrastructure level where the whole zone
+  can be checked first.
 
 ## The privacy policy is written from the code, so it goes stale
 
